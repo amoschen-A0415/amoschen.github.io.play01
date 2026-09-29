@@ -1,60 +1,1037 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的網站</title>
+    <title>安得烈志工服務體驗 - QR聯網互動版</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PeerJS & QRCode.js -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            text-align: center;
-            padding: 80px 20px;
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            color: #f8fafc;
+            user-select: none;
+            overflow-x: hidden;
         }
 
-        .box {
-            background: white;
-            max-width: 700px;
-            margin: auto;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 5px 20px #ccc;
+        /* 隱藏滾動條 */
+        * {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        *::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }
 
-        h1 {
-            color: #333;
+        /* QR Code 居中與圖形規範 */
+        #qrcode canvas, #qrcode img {
+            margin: 0 auto;
+            display: block;
+            max-width: 100%;
+            height: auto;
         }
 
-        p {
-            color: #666;
-            font-size: 20px;
+        /* 警報閃爍效果 */
+        @keyframes timer-warning {
+            0%, 100% { transform: scale(1); color: #ef4444; }
+            50% { transform: scale(1.15); color: #f87171; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.8)); }
+        }
+        .timer-alert {
+            animation: timer-warning 0.6s infinite ease-in-out;
+            font-weight: 900;
         }
 
-        button {
-            background: #2563eb;
-            color: white;
-            border: 0;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-size: 16px;
+        /* 震動 Shake 動畫 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            15%, 45%, 75% { transform: translateX(-10px) rotate(-1deg); }
+            30%, 60%, 90% { transform: translateX(10px) rotate(1deg); }
+        }
+        .animate-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        /* Stamp 印章動畫 */
+        @keyframes stamp-in {
+            0% { opacity: 0; transform: scale(3) rotate(-15deg); }
+            50% { opacity: 0.9; transform: scale(0.9) rotate(-10deg); }
+            70% { transform: scale(1.05) rotate(-12deg); }
+            100% { opacity: 1; transform: scale(1) rotate(-12deg); }
+        }
+        .stamp-success {
+            animation: stamp-in 0.4s ease-out forwards;
+            border: 6px solid #22c55e;
+            color: #22c55e;
+            text-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+            box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.3);
+        }
+        .stamp-fail {
+            animation: stamp-in 0.4s ease-out forwards;
+            border: 6px solid #ef4444;
+            color: #ef4444;
+            text-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+            box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+
+        /* 膠帶動畫 */
+        @keyframes tape-slide {
+            0% { width: 0%; opacity: 0; }
+            100% { width: 100%; opacity: 0.95; }
+        }
+        .tape-animation {
+            animation: tape-slide 0.4s ease-out forwards;
+        }
+
+        /* 貨架卡片樣式 */
+        .shelf-item-btn {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .shelf-item-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Toast 提示浮窗 */
+        #toast {
+            transition: all 0.3s ease-in-out;
+            transform: translateY(-100px);
+            opacity: 0;
+        }
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
         }
     </style>
 </head>
+<body class="h-screen w-screen flex flex-col justify-between overflow-hidden">
 
-<body>
+    <!-- 全局 Toast 提示通知欄 (手機端) -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-2.5 rounded-2xl shadow-2xl font-bold flex items-center space-x-2 text-base border-2 border-red-300 pointer-events-none">
+        <span id="toast-icon" class="text-xl">⚠️</span>
+        <span id="toast-msg">提示訊息</span>
+    </div>
 
-<div class="box">
+    <!-- 頂部 Header (大螢幕端) -->
+    <header id="main-header" class="w-full px-6 py-3 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md flex justify-between items-center z-10 flex-shrink-0">
+        <div class="flex items-center space-x-3">
+            <span class="text-3xl">🎁</span>
+            <h1 class="text-2xl md:text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-emerald-400 to-cyan-400">
+                安得烈志工服務體驗 - 雙屏互動大賽
+            </h1>
+        </div>
+        <div id="game-stage-badge" class="px-4 py-1 rounded-full text-base font-bold bg-slate-800 border border-emerald-500/50 text-emerald-400">
+            大廳連線中
+        </div>
+    </header>
 
-    <h1>歡迎來到我的網站</h1>
+    <!-- 核心內容區域 -->
+    <main class="flex-grow flex items-center justify-center p-2 md:p-4 relative overflow-hidden">
 
-    <p>這是我使用 GitHub Pages 製作的第一個網站。</p>
+        <!-- 大螢幕：連線大廳 (QRCode 掃碼) -->
+        <div id="view-lobby" class="w-full max-w-[96vw] h-full max-h-[90vh] bg-slate-900/80 border-2 border-slate-700/80 rounded-2xl p-4 md:p-6 shadow-2xl backdrop-blur-xl relative flex flex-col justify-between overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center h-full">
+                
+                <!-- 左側：QRCode 區域 -->
+                <div class="md:col-span-6 lg:col-span-7 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-700/80 pr-0 md:pr-6 pb-2 md:pb-0 text-center h-full overflow-hidden">
+                    <div class="p-5 bg-gradient-to-br from-amber-400 via-emerald-500 to-cyan-500 rounded-3xl shadow-[0_0_60px_rgba(245,158,11,0.4)] my-auto transition-transform hover:scale-[1.02] duration-300">
+                        <div id="qrcode" class="bg-white p-4 rounded-2xl border-2 border-white flex items-center justify-center shadow-inner"></div>
+                    </div>
+                </div>
 
-    <button onclick="alert('你好！')">
-        點我
-    </button>
+                <!-- 右側：參賽玩家列表與開始體驗按鈕 -->
+                <div class="md:col-span-6 lg:col-span-5 flex flex-col justify-between h-full overflow-hidden pl-0 md:pl-2">
+                    <div class="flex-grow flex flex-col overflow-hidden">
+                        <h2 class="text-2xl md:text-3xl font-bold text-amber-400 mb-4 flex items-center justify-between flex-shrink-0">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-users"></i> 已登錄志工名單</span>
+                            <span id="player-count-badge" class="text-xl bg-amber-950/80 text-amber-300 px-4 py-1.5 rounded-full font-black border border-amber-500/50">0 人</span>
+                        </h2>
 
-</div>
+                        <div id="player-list-lobby" class="grid grid-cols-2 lg:grid-cols-3 gap-2.5 overflow-hidden flex-grow content-start">
+                            <div class="col-span-full text-slate-500 text-center py-12 font-bold border border-dashed border-slate-800 rounded-xl text-lg">
+                                請掃描左側 QR Code 加入體驗...
+                            </div>
+                        </div>
+                    </div>
 
+                    <div id="lobby-start-box" class="w-full pt-4 flex-shrink-0">
+                        <button id="btn-start-game" class="hidden w-full py-4 text-3xl font-black text-slate-950 bg-gradient-to-r from-emerald-400 to-amber-400 rounded-2xl shadow-[0_0_30px_rgba(52,211,153,0.5)] hover:brightness-110 active:scale-95 transition-all border-2 border-white/40">
+                            🚀 開始打包體驗競賽
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 大螢幕：遊戲主畫面 (左排行榜 + 右食物箱物資槽) -->
+        <div id="view-game" class="hidden w-full h-full max-h-[96vh] grid grid-cols-1 md:grid-cols-12 gap-4 overflow-hidden">
+            
+            <!-- 左側：實時分數排行榜 -->
+            <div class="md:col-span-4 lg:col-span-4 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-xl flex flex-col justify-between overflow-hidden h-full">
+                <div class="overflow-hidden flex flex-col h-full">
+                    <h3 class="text-amber-400 text-xl md:text-2xl font-black mb-3 flex items-center justify-between flex-shrink-0 border-b border-slate-800 pb-2">
+                        <span>🏆 實時愛心積分排行榜</span>
+                        <span id="game-total-players-badge" class="text-sm bg-amber-950 text-amber-300 px-3 py-1 rounded-full border border-amber-700">0 人</span>
+                    </h3>
+                    <div id="players-dashboard" class="flex flex-col space-y-2.5 overflow-hidden flex-grow">
+                        <!-- JS 動態生成排行榜卡片 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：大螢幕物資箱與當前題目展示區 -->
+            <div id="packing-section" class="md:col-span-8 lg:col-span-8 bg-slate-900/90 border-2 border-emerald-500/40 rounded-3xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between overflow-hidden h-full relative">
+                
+                <!-- 上方狀態與計時列 -->
+                <div class="w-full flex-shrink-0">
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="question-round-tag" class="text-amber-400 font-black text-xl md:text-2xl tracking-wider">
+                            第 1 / 4 題
+                        </span>
+                        <div class="flex items-center space-x-3">
+                            <span id="timer-display" class="text-3xl md:text-4xl font-black text-emerald-400">⏱️ 15s</span>
+                            <button onclick="toggleBGM()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 py-1.5 rounded-xl text-sm font-bold border border-slate-700">
+                                <span id="bgm-icon">🎵</span> <span id="bgm-text">音樂: 關</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 箱子任務卡 -->
+                    <div class="bg-emerald-950/40 rounded-2xl p-4 border border-emerald-500/40 text-center mb-3">
+                        <h2 id="box-title" class="text-2xl md:text-3xl font-black text-emerald-300 mb-1">🥣 膳糧食物箱</h2>
+                        <p id="box-desc" class="text-sm font-bold text-slate-300">適用對象：0-15歲 弱勢兒童與少年</p>
+                        <span id="box-capacity-tag" class="inline-block mt-2 text-xs font-bold bg-amber-900/60 text-amber-300 px-3 py-1 rounded-full border border-amber-500/40">
+                            需要物資：1 ~ 4 樣（不能重複）
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 中間：大螢幕物資箱槽位 (顯示參賽者實時選擇情況或預設箱子視覺) -->
+                <div class="relative flex-grow flex flex-col justify-center my-2">
+                    <!-- 印章與膠帶覆蓋層 -->
+                    <div id="stamp-overlay" class="absolute inset-0 z-20 pointer-events-none flex items-center justify-center hidden">
+                        <div id="stamp-badge" class="px-8 py-4 rounded-2xl font-black text-2xl md:text-3xl tracking-widest bg-slate-900/95 shadow-2xl backdrop-blur-md border-4">
+                            驗證中...
+                        </div>
+                    </div>
+                    
+                    <div id="tape-overlay" class="absolute top-1/2 left-0 -translate-y-1/2 h-12 bg-emerald-500/80 border-y-4 border-emerald-300 z-10 pointer-events-none w-0 opacity-0 flex items-center justify-center text-white font-black text-lg tracking-widest shadow-lg">
+                        ✨ APPROVED 封箱通過 ✨
+                    </div>
+
+                    <div id="box-container-screen" class="bg-slate-950/70 rounded-3xl p-4 border-4 border-dashed border-amber-500/40 h-full min-h-[220px] grid grid-cols-2 gap-3 items-center">
+                        <!-- JS 動態生成 slots -->
+                    </div>
+                </div>
+
+                <!-- 下方應援提示 -->
+                <div class="mt-2 text-center text-xs md:text-sm font-bold text-amber-300 bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                    💡 請參賽者查看手機屏幕選擇物資並點擊「送出裝箱」！
+                </div>
+            </div>
+        </div>
+
+        <!-- 手機端：玩家控制器畫面 -->
+        <div id="view-player-mobile" class="hidden fixed inset-0 z-50 bg-slate-950 p-4 flex-col justify-between overflow-hidden">
+            
+            <!-- 手機端 Header -->
+            <div id="mobile-top-bar" class="text-center space-y-1 flex-shrink-0 border-b border-slate-800 pb-2">
+                <div class="flex justify-between items-center px-2">
+                    <span class="text-xl font-black text-amber-400">🎁 安得烈志工服務體驗</span>
+                    <span id="mobile-timer-text" class="text-lg font-black text-emerald-400">15s</span>
+                </div>
+                <p id="player-mobile-name" class="text-cyan-400 font-bold text-sm">正在連線大螢幕...</p>
+            </div>
+
+            <!-- 手機端：登錄暱稱表單 -->
+            <div id="mobile-join-form" class="space-y-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 my-auto">
+                <h3 class="text-center text-xl font-black text-amber-400">歡迎加入志工打包體驗</h3>
+                <input type="text" id="mobile-name-input" maxlength="8" placeholder="請輸入您的志工暱稱..." 
+                    class="w-full bg-slate-800 border-2 border-slate-700 p-4 rounded-xl text-center text-white text-xl font-bold focus:border-amber-400 outline-none">
+                <button id="btn-mobile-join" class="w-full py-4 bg-gradient-to-r from-amber-400 to-emerald-400 text-slate-950 font-black text-xl rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition">
+                    確認加入體驗
+                </button>
+            </div>
+
+            <!-- 手機端：物資選擇區域 (4箱槽 + 3x3物資貨架 + 按鈕) -->
+            <div id="mobile-game-panel" class="hidden flex-grow flex-col justify-between overflow-hidden my-2">
+                
+                <!-- 任務箱需求提示 -->
+                <div class="bg-slate-900 p-2 rounded-xl border border-emerald-500/30 mb-2 flex justify-between items-center text-xs">
+                    <span id="mobile-box-title" class="font-black text-emerald-400">🥣 膳糧食物箱</span>
+                    <span id="mobile-box-req" class="text-amber-300 font-bold">需 1~4 樣（不重複）</span>
+                </div>
+
+                <!-- 手機端箱內槽 (已選物資) -->
+                <div id="mobile-box-slots" class="grid grid-cols-2 gap-2 mb-2 bg-slate-900/60 p-2 rounded-xl border border-dashed border-amber-500/30">
+                    <!-- JS 動態生成槽位 -->
+                </div>
+
+                <!-- 手機端 3x3 九宮格貨架 -->
+                <div id="mobile-shelf-grid" class="grid grid-cols-3 gap-2 flex-grow min-h-[260px] my-1">
+                    <!-- JS 生成物資卡片 -->
+                </div>
+
+                <!-- 手機端操作按鈕區 -->
+                <div class="flex gap-2 mt-2 flex-shrink-0">
+                    <button onclick="mobileClearBox()" class="w-1/3 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-bold py-3 rounded-xl border border-slate-700 text-sm">
+                        🗑️ 重選
+                    </button>
+                    <button id="btn-mobile-submit" onclick="mobileSubmitBox()" class="w-2/3 bg-gradient-to-r from-emerald-500 to-green-600 active:scale-95 text-white font-black py-3 rounded-xl shadow-lg text-lg border-b-4 border-green-800">
+                        🎁 完成裝箱送出
+                    </button>
+                </div>
+            </div>
+
+            <!-- 手機端：等待結算狀態 -->
+            <div id="mobile-status-text" class="text-center text-slate-400 font-bold py-1 text-sm flex-shrink-0">
+                連線成功！請輸入暱稱完成登錄
+            </div>
+        </div>
+
+        <!-- 大螢幕：4 題後最終頒獎結算視窗 -->
+        <div id="view-result" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-6">
+            <div class="w-full max-w-4xl h-full max-h-[85vh] bg-slate-900 border-4 border-amber-400 rounded-3xl p-6 md:p-8 flex flex-col justify-between shadow-2xl overflow-hidden relative text-center">
+                
+                <div>
+                    <span class="text-6xl mb-2 inline-block">🏆</span>
+                    <h2 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 mb-2">
+                        志工服務體驗 - 榮譽榜
+                    </h2>
+                    <p class="text-slate-300 font-bold text-base">感謝各位志工用心打包愛心物資箱！</p>
+                </div>
+
+                <!-- 排行榜統計 -->
+                <div class="bg-slate-950/70 border-2 border-amber-500/30 rounded-2xl p-4 my-4 flex-grow overflow-y-auto">
+                    <div id="final-leaderboard" class="space-y-3">
+                        <!-- JS 動態生成最終總結算 -->
+                    </div>
+                </div>
+
+                <button onclick="restartGame()" class="w-full py-4 text-2xl font-black text-slate-950 bg-gradient-to-r from-emerald-400 to-amber-400 rounded-2xl shadow-xl hover:brightness-110 transition border-2 border-white/40">
+                    🔄 重新開始體驗
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        /* ==========================================================================
+           Web Audio API 音效與 8-bit 背景音樂合成器
+           ========================================================================== */
+        let audioCtx = null;
+        let isBgmPlaying = false;
+        let bgmTimer = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playPopSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.08);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.08);
+        }
+
+        function playSuccessSound() {
+            if (!audioCtx) return;
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = freq;
+                const startTime = audioCtx.currentTime + idx * 0.09;
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.3, startTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + 0.25);
+            });
+        }
+
+        function playFailSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(110, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.35);
+        }
+
+        const bgmMelody = [
+            { note: 523.25, dur: 0.2 }, { note: 659.25, dur: 0.2 }, { note: 783.99, dur: 0.2 }, { note: 659.25, dur: 0.2 },
+            { note: 587.33, dur: 0.2 }, { note: 659.25, dur: 0.2 }, { note: 698.46, dur: 0.4 },
+            { note: 659.25, dur: 0.2 }, { note: 587.33, dur: 0.2 }, { note: 523.25, dur: 0.2 }, { note: 493.88, dur: 0.2 },
+            { note: 523.25, dur: 0.4 }, { note: 392.00, dur: 0.4 }
+        ];
+        let bgmNoteIndex = 0;
+
+        function playNextBgmNote() {
+            if (!isBgmPlaying || !audioCtx) return;
+            const item = bgmMelody[bgmNoteIndex];
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.value = item.note;
+            gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + item.dur - 0.03);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + item.dur);
+
+            bgmNoteIndex = (bgmNoteIndex + 1) % bgmMelody.length;
+            bgmTimer = setTimeout(playNextBgmNote, item.dur * 1000);
+        }
+
+        function toggleBGM() {
+            initAudio();
+            isBgmPlaying = !isBgmPlaying;
+            const btnText = document.getElementById('bgm-text');
+            const btnIcon = document.getElementById('bgm-icon');
+
+            if (isBgmPlaying) {
+                btnText.innerText = "音樂: 開";
+                btnIcon.innerText = "🎶";
+                playNextBgmNote();
+            } else {
+                btnText.innerText = "音樂: 關";
+                btnIcon.innerText = "🎵";
+                if (bgmTimer) clearTimeout(bgmTimer);
+            }
+        }
+
+        /* ==========================================================================
+           食物箱規範與物資資料庫
+           ========================================================================== */
+        const BOX_TYPES = [
+            {
+                id: 'food_kid',
+                title: '🥣 膳糧食物箱',
+                subtitle: '適用對象：0-15歲 兒童與少年',
+                reqDesc: '需要物資：1 ~ 4 樣（不能重複）',
+                min: 1, max: 4,
+                allowed: ['保久乳', '罐裝肉鬆', '沖泡麥片', '肉類罐頭', '直麵條', '肉類調理包', '白米']
+            },
+            {
+                id: 'vegetarian',
+                title: '🍄 素食膳糧食物箱',
+                subtitle: '適用對象：0-15歲 素食兒童少年',
+                reqDesc: '需要物資：1 ~ 4 樣 (全素且不重複)',
+                min: 1, max: 4,
+                allowed: ['白米', '直麵條', '罐裝素肉鬆', '玉米罐頭', '素食調理包', '沖泡麥片']
+            },
+            {
+                id: 'elder_senior',
+                title: '👵 長青食物箱',
+                subtitle: '適用對象：65-80歲 長者',
+                reqDesc: '需要物資：1 ~ 4 樣 (好消化且不重複)',
+                min: 1, max: 4,
+                allowed: ['白米', '直麵條', '滴雞精', '軟質粥品', '沖泡麥片', '易咬餅乾']
+            },
+            {
+                id: 'baby',
+                title: '🍼 嬰兒物資箱',
+                subtitle: '適用對象：0-3歲 嬰幼兒',
+                reqDesc: '需要物資：僅限 2 樣 (奶粉、尿布)',
+                min: 2, max: 2,
+                allowed: ['嬰兒奶粉', '嬰幼兒尿布']
+            }
+        ];
+
+        const ALL_ITEMS = [
+            { name: '嬰兒奶粉', icon: '🍼' },
+            { name: '嬰幼兒尿布', icon: '👶' },
+            { name: '保久乳', icon: '🥛' },
+            { name: '罐裝肉鬆', icon: '🥫' },
+            { name: '沖泡麥片', icon: '🥣' },
+            { name: '肉類罐頭', icon: '🍖' },
+            { name: '直麵條', icon: '🍜' },
+            { name: '肉類調理包', icon: '🍛' },
+            { name: '白米', icon: '🌾' },
+            { name: '罐裝素肉鬆', icon: '🥫' },
+            { name: '玉米罐頭', icon: '🌽' },
+            { name: '素食調理包', icon: '🥗' },
+            { name: '滴雞精', icon: '🐔' },
+            { name: '軟質粥品', icon: '🍲' },
+            { name: '易咬餅乾', icon: '🍪' },
+
+            // ⛔ 違禁品
+            { name: '辣味罐頭', icon: '🌶️', isForbidden: true, reason: '辣味會刺激腸胃，禁用！' },
+            { name: '玻璃罐頭', icon: '🍾', isForbidden: true, reason: '玻璃罐易碎摔破損，運送危險！' },
+            { name: '咖啡', icon: '☕', isForbidden: true, reason: '含有咖啡因，幼童與長者不宜！' },
+            { name: '泡麵', icon: '🍜', isForbidden: true, reason: '油炸高鈉，非正規營養物資！' },
+            { name: '碳酸飲料', icon: '🥤', isForbidden: true, reason: '高糖份氣泡飲料不適合援助！' }
+        ];
+
+        /* ==========================================================================
+           聯網 PeerJS 與全域變數狀態
+           ========================================================================== */
+        let peer = null;
+        let hostConn = null;
+        let players = [];
+        let myPlayerId = null;
+
+        let currentQuestion = 0; // 0 ~ 3 共 4 題
+        const TOTAL_QUESTIONS = 4;
+        let QUESTION_TIME = 15; // 每題 15 秒
+        let timeLeft = 15;
+        let timerInterval = null;
+
+        let currentBox = null;
+        let currentShelfItems = [];
+        let mobileSelectedItems = []; // 手機端選擇物資
+
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hostId = urlParams.get('host');
+
+            if (hostId) {
+                // 手機端邏輯
+                document.getElementById('main-header').classList.add('hidden');
+                document.getElementById('view-lobby').style.display = 'none';
+                document.getElementById('view-player-mobile').classList.remove('hidden');
+                document.getElementById('view-player-mobile').classList.add('flex');
+                initMobileController(hostId);
+            } else {
+                // 大螢幕端邏輯
+                initHostPeer();
+            }
+        };
+
+        /* --------------------------------------------------------------------------
+           大螢幕 Host PeerJS 初始化與遊戲流程控制
+           -------------------------------------------------------------------------- */
+        function initHostPeer() {
+            peer = new Peer();
+            
+            peer.on('open', (id) => {
+                const joinUrl = `${window.location.href.split('?')[0]}?host=${id}`;
+                document.getElementById("qrcode").innerHTML = "";
+                
+                new QRCode(document.getElementById("qrcode"), {
+                    text: joinUrl,
+                    width: 420,
+                    height: 420
+                });
+            });
+
+            peer.on('connection', (conn) => {
+                conn.on('open', () => {
+                    conn.on('data', (data) => {
+                        if (data.type === 'JOIN') {
+                            addPlayer(data.name, conn, data.playerId);
+                        } else if (data.type === 'SUBMIT_BOX') {
+                            handlePlayerSubmission(data.playerId, data.items);
+                        }
+                    });
+
+                    conn.on('close', () => {
+                        players = players.filter(p => p.conn !== conn);
+                        renderLobbyPlayers();
+                        renderPlayersDashboard();
+                    });
+                });
+            });
+        }
+
+        function addPlayer(name, conn, playerId) {
+            if (players.some(p => p.id === playerId)) return;
+
+            const p = {
+                id: playerId,
+                name: name,
+                conn: conn,
+                score: 0,
+                submitted: false,
+                lastScoreGained: 0,
+                currentItems: []
+            };
+            players.push(p);
+            renderLobbyPlayers();
+
+            if (players.length >= 1) {
+                document.getElementById('btn-start-game').classList.remove('hidden');
+            }
+        }
+
+        function renderLobbyPlayers() {
+            const container = document.getElementById('player-list-lobby');
+            container.innerHTML = '';
+            document.getElementById('player-count-badge').innerText = `${players.length} 人`;
+
+            players.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center bg-slate-800 p-2.5 rounded-xl border border-slate-700 text-sm';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="text-xl">📱</span>
+                        <span class="font-bold text-white truncate">${p.name}</span>
+                    </div>
+                    <span class="text-[10px] bg-emerald-900/80 text-emerald-300 px-2 py-0.5 rounded font-bold">已連線</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        document.getElementById('btn-start-game').addEventListener('click', () => {
+            initAudio();
+            startGame();
+        });
+
+        function startGame() {
+            document.getElementById('view-lobby').classList.add('hidden');
+            document.getElementById('view-game').classList.remove('hidden');
+            document.getElementById('view-game').classList.add('grid');
+
+            currentQuestion = 0;
+            startQuestionRound();
+        }
+
+        function startQuestionRound() {
+            if (currentQuestion >= TOTAL_QUESTIONS) {
+                endGame();
+                return;
+            }
+
+            // 重置玩家答題狀態
+            players.forEach(p => {
+                p.submitted = false;
+                p.currentItems = [];
+            });
+
+            // 隨機選擇本題任務箱
+            currentBox = BOX_TYPES[currentQuestion % BOX_TYPES.length];
+            generateShelfItems();
+
+            // 更新大螢幕 UI
+            document.getElementById('question-round-tag').innerText = `第 ${currentQuestion + 1} / ${TOTAL_QUESTIONS} 題`;
+            document.getElementById('box-title').innerText = currentBox.title;
+            document.getElementById('box-desc').innerText = currentBox.subtitle;
+            document.getElementById('box-capacity-tag').innerText = currentBox.reqDesc;
+            renderBoxSlotsScreen();
+            renderPlayersDashboard();
+
+            // 廣播給所有手機端
+            players.forEach(p => {
+                if (p.conn) {
+                    p.conn.send({
+                        type: 'NEXT_ROUND',
+                        round: currentQuestion + 1,
+                        totalRounds: TOTAL_QUESTIONS,
+                        box: currentBox,
+                        shelfItems: currentShelfItems
+                    });
+                }
+            });
+
+            // 開始 15 秒倒數
+            timeLeft = QUESTION_TIME;
+            document.getElementById('timer-display').innerText = `⏱️ ${timeLeft}s`;
+            
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(tickTimer, 1000);
+        }
+
+        function tickTimer() {
+            timeLeft--;
+            document.getElementById('timer-display').innerText = `⏱️ ${timeLeft}s`;
+
+            // 廣播時間至手機
+            players.forEach(p => {
+                if (p.conn) p.conn.send({ type: 'TIMER_TICK', timeLeft: timeLeft });
+            });
+
+            const timerEl = document.getElementById('timer-display');
+            if (timeLeft <= 5) {
+                timerEl.classList.add('timer-alert');
+            } else {
+                timerEl.classList.remove('timer-alert');
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                evaluateRound();
+            }
+        }
+
+        // 生成貨架 9 樣物資
+        function generateShelfItems() {
+            let selected = [];
+            const validPool = ALL_ITEMS.filter(item => !item.isForbidden && currentBox.allowed.some(a => item.name.includes(a) || a.includes(item.name)));
+            const shuffledValid = [...validPool].sort(() => 0.5 - Math.random());
+            
+            for (let i = 0; i < Math.min(shuffledValid.length, 4); i++) {
+                selected.push(shuffledValid[i]);
+            }
+
+            const forbiddenPool = ALL_ITEMS.filter(item => item.isForbidden);
+            const shuffledForbidden = [...forbiddenPool].sort(() => 0.5 - Math.random());
+            selected.push(shuffledForbidden[0]);
+
+            const remainingPool = ALL_ITEMS.filter(item => !selected.some(s => s.name === item.name));
+            const shuffledRemaining = [...remainingPool].sort(() => 0.5 - Math.random());
+
+            while (selected.length < 9 && shuffledRemaining.length > 0) {
+                selected.push(shuffledRemaining.pop());
+            }
+
+            currentShelfItems = selected.sort(() => 0.5 - Math.random());
+        }
+
+        // 渲染大螢幕物資箱視覺槽
+        function renderBoxSlotsScreen() {
+            const container = document.getElementById('box-container-screen');
+            container.innerHTML = '';
+            for (let i = 0; i < 4; i++) {
+                const slot = document.createElement('div');
+                slot.className = "border-2 border-dashed border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-500/50 font-bold text-sm bg-slate-950/40 h-24";
+                slot.innerText = `物資槽 ${i + 1}`;
+                container.appendChild(slot);
+            }
+        }
+
+        // 處理玩家提交與新計分規則驗證
+        function handlePlayerSubmission(playerId, items) {
+            const player = players.find(p => p.id === playerId);
+            if (!player || player.submitted) return;
+
+            player.submitted = true;
+            player.currentItems = items;
+
+            // 檢查放進食物箱的物資是否有「重複」
+            const names = items.map(i => i.name);
+            const hasDuplicate = new Set(names).size !== names.length;
+
+            let correctCount = 0;
+            let isAllFourCorrect = false;
+
+            if (!hasDuplicate) {
+                // 驗證是否合格（非違禁品且符合箱子條件）
+                items.forEach(item => {
+                    const isForbidden = item.isForbidden;
+                    const isAllowed = currentBox.allowed.some(a => item.name.includes(a) || a.includes(item.name));
+                    if (!isForbidden && isAllowed) {
+                        correctCount++;
+                    }
+                });
+
+                if (items.length === 4 && correctCount === 4) {
+                    isAllFourCorrect = true;
+                }
+            }
+
+            /*
+              計分方式規則：
+              - 每題15秒
+              - 4樣物資答對1樣+5分 (每正確1樣 +5分)
+              - 4樣都對的每剩1秒+1分 (4樣全對：加答對分20分 + 每剩1秒加1分)
+            */
+            let roundScore = correctCount * 5;
+            if (isAllFourCorrect) {
+                roundScore += timeLeft * 1; // 剩餘時間每秒 +1 分
+            }
+
+            player.score += roundScore;
+            player.lastScoreGained = roundScore;
+
+            renderPlayersDashboard();
+
+            // 若所有連線玩家皆完成答題，可提早結算本題
+            if (players.every(p => p.submitted)) {
+                if (timerInterval) clearInterval(timerInterval);
+                evaluateRound();
+            }
+        }
+
+        // 本題時間到或全員答對後展示過場結算
+        function evaluateRound() {
+            playSuccessSound();
+
+            const stampOverlay = document.getElementById('stamp-overlay');
+            const stampBadge = document.getElementById('stamp-badge');
+            const tapeOverlay = document.getElementById('tape-overlay');
+
+            stampBadge.className = "px-8 py-4 rounded-2xl font-black text-2xl md:text-3xl tracking-widest bg-slate-900/95 shadow-2xl stamp-success border-4 border-emerald-500 text-emerald-400";
+            stampBadge.innerText = `✨ 第 ${currentQuestion + 1} 題 結算完成！`;
+            stampOverlay.classList.remove('hidden');
+            tapeOverlay.classList.add('tape-animation');
+
+            setTimeout(() => {
+                stampOverlay.classList.add('hidden');
+                tapeOverlay.classList.remove('tape-animation');
+                currentQuestion++;
+                startQuestionRound();
+            }, 2000);
+        }
+
+        // 渲染左側實時排行榜
+        function renderPlayersDashboard() {
+            const dashboard = document.getElementById('players-dashboard');
+            dashboard.innerHTML = '';
+
+            document.getElementById('game-total-players-badge').innerText = `${players.length} 人`;
+
+            const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+
+            sortedPlayers.forEach((p, rank) => {
+                const card = document.createElement('div');
+                let borderClass = 'border-slate-800 bg-slate-900/70';
+                let statusBadge = '<span class="text-xs text-amber-400 font-bold">打包中...</span>';
+
+                if (p.submitted) {
+                    borderClass = 'border-emerald-500/60 bg-slate-800/90';
+                    statusBadge = `<span class="text-xs text-emerald-400 font-extrabold">✓ 已裝箱 (+${p.lastScoreGained})</span>`;
+                }
+
+                card.className = `p-3 rounded-2xl border-2 ${borderClass} flex items-center justify-between transition-all duration-200 flex-shrink-0`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 truncate max-w-[65%]">
+                        <span class="font-black text-amber-400 text-xl min-w-[30px] text-center">#${rank + 1}</span>
+                        <div class="flex flex-col truncate">
+                            <span class="font-black text-white text-lg truncate tracking-wide">${p.name}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 flex-shrink-0">
+                        <span class="text-emerald-400 font-black text-2xl">${p.score} <span class="text-xs text-slate-400 font-normal">分</span></span>
+                        ${statusBadge}
+                    </div>
+                `;
+                dashboard.appendChild(card);
+            });
+        }
+
+        // 4 題結束最終結算
+        function endGame() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            document.getElementById('view-game').classList.add('hidden');
+            const resultModal = document.getElementById('view-result');
+            resultModal.classList.remove('hidden');
+
+            const container = document.getElementById('final-leaderboard');
+            container.innerHTML = '';
+
+            const sorted = [...players].sort((a, b) => b.score - a.score);
+
+            sorted.forEach((p, idx) => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between bg-slate-900 p-4 rounded-xl border border-slate-800";
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl font-black ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-amber-600' : 'text-slate-500'}">
+                            ${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                        </span>
+                        <span class="text-xl font-bold text-white">${p.name}</span>
+                    </div>
+                    <span class="text-2xl font-black text-emerald-400">${p.score} 分</span>
+                `;
+                container.appendChild(item);
+            });
+
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 150, spread: 90, origin: { y: 0.5 } });
+            }
+        }
+
+        function restartGame() {
+            document.getElementById('view-result').classList.add('hidden');
+            document.getElementById('view-lobby').classList.remove('hidden');
+            document.getElementById('main-header').classList.remove('hidden');
+        }
+
+        /* --------------------------------------------------------------------------
+           手機端 Player Controller 邏輯
+           -------------------------------------------------------------------------- */
+        function initMobileController(hostId) {
+            peer = new Peer();
+            peer.on('open', (id) => {
+                myPlayerId = 'p_' + id;
+                hostConn = peer.connect(hostId);
+
+                hostConn.on('open', () => {
+                    document.getElementById('player-mobile-name').innerText = "已連線至大螢幕";
+                });
+
+                hostConn.on('data', (data) => {
+                    if (data.type === 'NEXT_ROUND') {
+                        setupMobileNextRound(data);
+                    } else if (data.type === 'TIMER_TICK') {
+                        document.getElementById('mobile-timer-text').innerText = `${data.timeLeft}s`;
+                    }
+                });
+            });
+        }
+
+        document.getElementById('btn-mobile-join').addEventListener('click', () => {
+            const name = document.getElementById('mobile-name-input').value.trim();
+            if (!name) return alert('請輸入暱稱！');
+
+            if (hostConn && hostConn.open) {
+                hostConn.send({ type: 'JOIN', name: name, playerId: myPlayerId });
+                document.getElementById('player-mobile-name').innerText = `志工：${name}`;
+                document.getElementById('mobile-join-form').classList.add('hidden');
+                document.getElementById('mobile-game-panel').classList.remove('hidden');
+                document.getElementById('mobile-game-panel').classList.add('flex');
+                document.getElementById('mobile-status-text').innerText = '已登錄！請等待大螢幕開始體驗...';
+            }
+        });
+
+        function setupMobileNextRound(data) {
+            mobileSelectedItems = [];
+            currentBox = data.box;
+            currentShelfItems = data.shelfItems;
+
+            document.getElementById('mobile-box-title').innerText = currentBox.title;
+            document.getElementById('mobile-box-req').innerText = currentBox.reqDesc;
+            document.getElementById('mobile-status-text').innerText = `第 ${data.round} / ${data.totalRounds} 題：選取物資放進食物箱！`;
+
+            const submitBtn = document.getElementById('btn-mobile-submit');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'pointer-events-none');
+
+            renderMobileSlots();
+            renderMobileShelf();
+        }
+
+        function renderMobileShelf() {
+            const grid = document.getElementById('mobile-shelf-grid');
+            grid.innerHTML = '';
+
+            currentShelfItems.forEach((item) => {
+                const btn = document.createElement('button');
+                btn.className = "shelf-item-btn bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border-2 border-slate-700 rounded-xl p-2 flex flex-col items-center justify-center text-center shadow";
+                btn.onclick = () => mobileAddItem(item);
+
+                btn.innerHTML = `
+                    <span class="text-3xl mb-0.5">${item.icon}</span>
+                    <span class="text-xs font-black text-amber-300 leading-tight">${item.name}</span>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function renderMobileSlots() {
+            const container = document.getElementById('mobile-box-slots');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 4; i++) {
+                const item = mobileSelectedItems[i];
+                const slot = document.createElement('div');
+
+                if (item) {
+                    slot.className = "bg-slate-800 border-2 border-emerald-400 rounded-xl p-1.5 flex items-center justify-between shadow cursor-pointer";
+                    slot.onclick = () => mobileRemoveItem(i);
+                    slot.innerHTML = `
+                        <div class="flex items-center space-x-1.5 truncate">
+                            <span class="text-xl">${item.icon}</span>
+                            <span class="text-xs font-bold text-white truncate">${item.name}</span>
+                        </div>
+                        <span class="text-xs font-black text-red-400 ml-1">✕</span>
+                    `;
+                } else {
+                    slot.className = "border border-dashed border-slate-700 rounded-xl flex items-center justify-center text-slate-500 font-bold text-[10px] min-h-[38px]";
+                    slot.innerText = `槽位 ${i + 1}`;
+                }
+                container.appendChild(slot);
+            }
+        }
+
+        function mobileAddItem(item) {
+            playPopSound();
+            if (mobileSelectedItems.length >= 4) {
+                showToast("⚠️ 箱子最多只能放 4 樣物資喔！");
+                return;
+            }
+
+            // 規則 4：放進食物箱的物資不能重複
+            if (mobileSelectedItems.some(i => i.name === item.name)) {
+                showToast(`⚠️ 規則限制：物資［${item.name}］不能重複放入！`);
+                return;
+            }
+
+            mobileSelectedItems.push(item);
+            renderMobileSlots();
+        }
+
+        function mobileRemoveItem(index) {
+            playPopSound();
+            mobileSelectedItems.splice(index, 1);
+            renderMobileSlots();
+        }
+
+        function mobileClearBox() {
+            playPopSound();
+            mobileSelectedItems = [];
+            renderMobileSlots();
+        }
+
+        function mobileSubmitBox() {
+            if (mobileSelectedItems.length === 0) {
+                showToast("⚠️ 箱子是空的，請先點選物資！");
+                return;
+            }
+
+            playPopSound();
+
+            if (hostConn && hostConn.open) {
+                hostConn.send({
+                    type: 'SUBMIT_BOX',
+                    playerId: myPlayerId,
+                    items: mobileSelectedItems
+                });
+
+                document.getElementById('mobile-status-text').innerText = '✓ 愛心物資箱已成功裝箱送出！等待大螢幕結算...';
+                
+                const submitBtn = document.getElementById('btn-mobile-submit');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'pointer-events-none');
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+    </script>
 </body>
 </html>
