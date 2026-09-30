@@ -253,15 +253,15 @@
             </div>
 
             <!-- 右側 (中間)：大螢幕答題區 -->
-            <div class="md:col-span-8 lg:col-span-9 rounded-3xl p-6 flex flex-col justify-between items-center overflow-hidden h-full relative">
+            <div class="md:col-span-8 lg:col-span-9 rounded-3xl p-6 flex flex-col justify-start items-center overflow-hidden h-full relative">
                 
-                <!-- 頂部波次與倒數條 -->
-                <div class="w-full flex-shrink-0 z-10 mb-8">
-                    <div class="w-full bg-amber-100/80 h-4 rounded-full mb-4 overflow-hidden border border-amber-300/50 shadow-inner">
+                <!-- 頂部波次與倒數條（外距調小，讓內容向上移動） -->
+                <div class="w-full flex-shrink-0 z-10 mb-3">
+                    <div class="w-full bg-amber-100/80 h-4 rounded-full mb-3 overflow-hidden border border-amber-300/50 shadow-inner">
                         <div id="timer-bar" class="h-full bg-gradient-to-r from-amber-400 to-orange-500 w-full transition-all duration-100 ease-linear"></div>
                     </div>
 
-                    <div class="flex justify-between items-center mb-3">
+                    <div class="flex justify-between items-center">
                         <div class="flex items-center gap-3">
                             <span id="box-type-badge" class="bg-amber-500 text-white font-black text-base px-4 py-1.5 rounded-full shadow-md whitespace-nowrap">
                                 🥣 膳糧食物箱
@@ -272,18 +272,20 @@
                         </div>
                         <span id="timer-text" class="text-4xl font-black text-orange-600 animate-pulse whitespace-nowrap">⏱ 5s</span>
                     </div>
+                </div>
 
-                    <!-- 箱子任務指示與說明 (增加下方間距 mb-16) -->
-                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center shadow-md overflow-hidden">
+                <!-- 中央區域：食物箱與題目任務指示區塊（食物箱向上移動，題目向下移，並保持中間距離） -->
+                <div class="relative flex-grow flex flex-col items-center justify-start w-full mt-2 overflow-hidden">
+                    
+                    <!-- 題目：箱子任務指示與說明（向下移動，置於食物箱上方並保留間距） -->
+                    <div class="w-full bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center shadow-md overflow-hidden mb-8 z-20 flex-shrink-0">
                         <p id="box-instruction" class="text-lg md:text-xl font-black text-amber-900 whitespace-nowrap overflow-hidden text-ellipsis">
                             任務：請從手機點選合格物資放進箱子！
                         </p>
                     </div>
-                </div>
 
-                <!-- 中央區域：食物箱展示區（邊框縮減為20%，整體大小縮減為60%：尺寸改為 w-[21.6rem] md:w-[28.8rem]，圖示改為 text-[9rem] md:text-[11.4rem]） -->
-                <div class="relative flex-grow flex items-center justify-center w-full my-auto p-1 overflow-hidden">
-                    <div class="relative flex items-center justify-center max-w-full">
+                    <!-- 中央圖案：食物箱展示區（向上移動） -->
+                    <div class="relative flex items-center justify-center max-w-full my-auto">
                         
                         <!-- 食物箱 (整體尺寸與字體縮減為60%，p-4 邊框與內距縮減 20% 改為 p-1) -->
                         <div id="main-big-box" class="w-[21.6rem] md:w-[28.8rem] max-h-[36vh] max-w-[90vw] flex flex-col items-center justify-center relative box-active z-10 p-1">
