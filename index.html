@@ -256,7 +256,7 @@
             <div class="md:col-span-8 lg:col-span-9 rounded-3xl p-6 flex flex-col justify-between items-center overflow-hidden h-full relative">
                 
                 <!-- 頂部波次與倒數條 -->
-                <div class="w-full flex-shrink-0 z-10">
+                <div class="w-full flex-shrink-0 z-10 mb-8">
                     <div class="w-full bg-amber-100/80 h-4 rounded-full mb-4 overflow-hidden border border-amber-300/50 shadow-inner">
                         <div id="timer-bar" class="h-full bg-gradient-to-r from-amber-400 to-orange-500 w-full transition-all duration-100 ease-linear"></div>
                     </div>
@@ -273,28 +273,28 @@
                         <span id="timer-text" class="text-4xl font-black text-orange-600 animate-pulse whitespace-nowrap">⏱ 5s</span>
                     </div>
 
-                    <!-- 箱子任務指示與說明 -->
-                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center shadow-md overflow-hidden mb-12">
+                    <!-- 箱子任務指示與說明 (增加下方間距 mb-16) -->
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center shadow-md overflow-hidden">
                         <p id="box-instruction" class="text-lg md:text-xl font-black text-amber-900 whitespace-nowrap overflow-hidden text-ellipsis">
                             任務：請從手機點選合格物資放進箱子！
                         </p>
                     </div>
                 </div>
 
-                <!-- 中央區域：食物箱展示區（無黃框底色、距離拉開）與右側跳躍動畫提示區 -->
+                <!-- 中央區域：食物箱展示區（尺寸放大1倍：text-[15rem] md:text-[19rem]，高寬適應放大）與右側跳躍動畫提示區 -->
                 <div class="relative flex-grow flex items-center justify-center w-full my-auto p-4 overflow-hidden">
                     <div class="relative flex items-center justify-center">
                         
-                        <!-- 食物箱 (拿掉黃框底色，維持簡潔視覺) -->
-                        <div id="main-big-box" class="w-[28rem] md:w-[34rem] h-[28rem] md:h-[34rem] max-h-[50vh] max-w-[85%] flex flex-col items-center justify-center relative box-active z-10 p-8">
-                            <div class="text-[7.5rem] md:text-[9.5rem] leading-none mb-4 drop-shadow-lg">📦</div>
+                        <!-- 食物箱 (圖示與文字尺寸放大1倍) -->
+                        <div id="main-big-box" class="w-[36rem] md:w-[48rem] max-h-[60vh] max-w-[95%] flex flex-col items-center justify-center relative box-active z-10 p-4">
+                            <div class="text-[15rem] md:text-[19rem] leading-none mb-4 drop-shadow-2xl">📦</div>
                             
                             <!-- 文字完整顯示 + 若有年齡層則顯示在下一行 -->
                             <div class="flex flex-col items-center justify-center text-center">
-                                <span id="big-box-title" class="text-3xl md:text-5xl font-black text-amber-950 tracking-wider whitespace-nowrap">
+                                <span id="big-box-title" class="text-4xl md:text-6xl font-black text-amber-950 tracking-wider whitespace-nowrap">
                                     膳糧食物箱
                                 </span>
-                                <span id="big-box-age" class="text-xl md:text-2xl font-bold text-amber-800 mt-2 whitespace-nowrap">
+                                <span id="big-box-age" class="text-2xl md:text-3xl font-bold text-amber-800 mt-2 whitespace-nowrap">
                                     (3-15歲)
                                 </span>
                             </div>
@@ -304,7 +304,7 @@
                             </div>
                         </div>
 
-                        <!-- 右側：僅顯示「答對+1」跳躍效果顯示區 (回答後不顯示答案，僅跳躍與音效) -->
+                        <!-- 右側：僅顯示「答對+1」跳躍效果顯示區 -->
                         <div id="correct-badge-container" class="absolute -right-16 md:-right-28 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none z-30">
                             <!-- JS 動態插入跳躍動畫的「答對+1」 -->
                         </div>
@@ -350,7 +350,7 @@
 
     <script>
         /* ==========================================================================
-           1. 音效控制 (Web Audio API - 倒計時嗶嗶聲 + 答對歡快跳躍音效)
+           1. 音效控制 (Web Audio API - 心跳急促聲 + 答對歡快跳躍音效)
            ========================================================================== */
         let audioCtx = null;
 
@@ -364,26 +364,42 @@
             return audioCtx;
         }
 
-        // 倒計時音效
-        function playTickSound(isHigh = false) {
+        // 模擬真實心跳急促聲：雙聲（Lub-Dub），每半秒觸發一組
+        function playHeartbeatSound() {
             try {
                 const ctx = getAudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
+                const now = ctx.currentTime;
 
-                osc.type = isHigh ? 'sawtooth' : 'triangle';
-                const freq = isHigh ? 1320 : 660;
-                osc.frequency.setValueAtTime(freq, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(freq * 0.8, ctx.currentTime + 0.08);
+                // --- 第一聲 Lub (較低沉、響亮) ---
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(120, now);
+                osc1.frequency.exponentialRampToValueAtTime(45, now + 0.08);
 
-                gain.gain.setValueAtTime(0.4, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
+                gain1.gain.setValueAtTime(0.8, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
 
-                osc.connect(gain);
-                gain.connect(ctx.destination);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.09);
 
-                osc.start();
-                osc.stop(ctx.currentTime + 0.09);
+                // --- 第二聲 Dub (間隔 0.12 秒，音高略高、時間稍短) ---
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(140, now + 0.12);
+                osc2.frequency.exponentialRampToValueAtTime(50, now + 0.19);
+
+                gain2.gain.setValueAtTime(0.6, now + 0.12);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.19);
+
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.12);
+                osc2.stop(now + 0.19);
+
             } catch (e) {
                 console.log('Audio Error:', e);
             }
@@ -529,7 +545,7 @@
         let aiTimeouts = [];
         let isTransitioning = false;
         let waveTimeLeft = 5;
-        let lastPlayedTickIndex = -1;
+        let lastPlayedHalfSecStep = -1;
 
         let mobileHasAnswered = false;
 
@@ -938,7 +954,7 @@
         function loadWaveContent(waveIdx) {
             isTransitioning = false;
             waveTimeLeft = 5;
-            lastPlayedTickIndex = -1;
+            lastPlayedHalfSecStep = -1;
 
             let availableAllowed = currentBoxData.allowed.filter(item => !usedAllowedInCurrentBox.includes(item));
             if (availableAllowed.length === 0) {
@@ -1044,13 +1060,11 @@
                 document.getElementById('timer-text').innerText = `⏱️ ${waveTimeLeft}s`;
                 document.getElementById('timer-bar').style.width = `${(remaining / duration) * 100}%`;
 
-                if (remaining <= 3000 && remaining > 0) {
-                    const secondIndex = Math.floor((3000 - remaining) / 1000);
-                    if (secondIndex > lastPlayedTickIndex && secondIndex < 3) {
-                        lastPlayedTickIndex = secondIndex;
-                        const isFinalTick = (secondIndex === 2);
-                        playTickSound(isFinalTick);
-                    }
+                // 每 0.5 秒 (500ms) 播放一次急促心跳聲（每半秒 2 聲 Lub-Dub）
+                const currentHalfSecStep = Math.floor(elapsed / 500);
+                if (currentHalfSecStep > lastPlayedHalfSecStep && remaining > 0) {
+                    lastPlayedHalfSecStep = currentHalfSecStep;
+                    playHeartbeatSound();
                 }
 
                 if (remaining <= 0) {
