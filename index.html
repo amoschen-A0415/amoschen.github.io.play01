@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>安得烈食物箱行 - 即時志工打包大挑戰</title>
+    <title>安得烈志工服務體驗 - 歡樂體驗版</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PeerJS & QRCode.js -->
@@ -119,7 +119,7 @@
 
                         <div id="player-list-lobby" class="grid grid-cols-2 lg:grid-cols-3 gap-2.5 overflow-hidden flex-grow content-start">
                             <div class="col-span-full text-amber-700/60 text-center py-12 font-bold border-2 border-dashed border-amber-200 rounded-2xl text-lg">
-                                ☀️️ 請掃描左側 QR Code 加入志工隊伍...
+                                ☀ 請掃描左側 QR Code 加入志工隊伍...
                             </div>
                         </div>
                     </div>
@@ -420,7 +420,7 @@
         let mobileHasAnswered = false;
 
         /* ==========================================================================
-           3. 音效與 Web Audio 聲響
+           3. 音效與 Web Audio 聲響 (大黃蜂的飛行 Flight of the Bumblebee)
            ========================================================================== */
         function initAudio() {
             if (!audioCtx) {
@@ -431,7 +431,7 @@
             }
         }
 
-        function playSingleNote(freq, duration, type = 'sine', gainVal = 0.1) {
+        function playSingleNote(freq, duration, type = 'sawtooth', gainVal = 0.05) {
             if (!audioCtx || freq <= 0) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -445,18 +445,30 @@
             osc.stop(audioCtx.currentTime + duration);
         }
 
+        // 大黃蜂的飛行經典半音階快速旋律
+        const BUMBLEBEE_MOTIF = [
+            // 第一句半音階快速下降與迴旋
+            587.33, 554.37, 523.25, 493.88, 523.25, 554.37, 587.33, 554.37,
+            523.25, 493.88, 466.16, 440.00, 466.16, 493.88, 523.25, 493.88,
+            466.16, 440.00, 415.30, 392.00, 415.30, 440.00, 466.16, 440.00,
+            415.30, 392.00, 369.99, 349.23, 369.99, 392.00, 415.30, 440.00,
+            // 第二句急促迴轉向上
+            440.00, 466.16, 493.88, 523.25, 554.37, 587.33, 622.25, 659.25,
+            622.25, 587.33, 554.37, 523.25, 493.88, 466.16, 440.00, 415.30
+        ];
+
         function playSunBgm() {
             initAudio();
             stopBgm();
             isBgmPlaying = true;
-            const notes = [261.63, 329.63, 392.00, 523.25, 440.00, 392.00, 329.63];
             let idx = 0;
 
             function loop() {
                 if (!isBgmPlaying) return;
-                playSingleNote(notes[idx], 0.3, 'triangle', 0.05);
-                idx = (idx + 1) % notes.length;
-                bgmTimerId = setTimeout(loop, 400);
+                // 以 80ms 高速節奏播放半音階音符，營造《大黃蜂的飛行》急促嗡嗡聲的效果
+                playSingleNote(BUMBLEBEE_MOTIF[idx], 0.1, 'sawtooth', 0.04);
+                idx = (idx + 1) % BUMBLEBEE_MOTIF.length;
+                bgmTimerId = setTimeout(loop, 80);
             }
             loop();
         }
@@ -697,6 +709,11 @@
 
         document.getElementById('btn-start-game').addEventListener('click', () => {
             initAudio();
+            // 開始遊戲時自動播放大黃蜂背景音樂
+            if (!isBgmPlaying) {
+                playSunBgm();
+                document.getElementById('bgm-text').innerText = "背景音樂: 開";
+            }
             finalizeAndStartGame();
         });
 
@@ -842,7 +859,6 @@
             }, 1000);
         }
 
-        // 修改點：獨立為每個參賽者生成隨機題目與選項，防範彼此參照
         function loadWaveContent(waveIdx) {
             isTransitioning = false;
             waveTimeLeft = 5;
@@ -909,7 +925,6 @@
 
         function triggerAIBehaviors() {
             players.filter(p => p.isAI).forEach(ai => {
-                // AI 根據自身專屬題目陣列作答
                 const correctIdx = ai.currentWaveOptions.findIndex(o => o.isCorrect);
                 const accRate = ai.aiSpec ? ai.aiSpec.accRate : 0.75;
                 const isCorrect = Math.random() < accRate;
@@ -969,7 +984,6 @@
 
             players.forEach(p => {
                 if (p.choiceIndex !== null && p.choiceIndex !== undefined) {
-                    // 根據參賽者個別對應的題目選項進行驗證與評分
                     const chosenOpt = p.currentWaveOptions[p.choiceIndex];
                     if (chosenOpt && chosenOpt.isCorrect) {
                         let waveScore = 5 + (p.timeLeft || 0);
