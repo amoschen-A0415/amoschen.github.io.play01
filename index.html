@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>安得烈志工服務體驗 - 競賽版</title>
+    <title>安得烈志工服務體驗 - 陽光歡樂版</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PeerJS & QRCode.js -->
@@ -11,19 +11,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Canvas Confetti CDN -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <!-- FontAwesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
+    <!-- Google Fonts Inter & Noto Sans TC -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        body {
+        html, body {
+            font-size: 115%;
             font-family: 'Noto Sans TC', sans-serif;
-            background: linear-gradient(135deg, #fffbe3 0%, #f0fdf4 50%, #e0f2fe 100%);
-            color: #2d3748;
+            background: linear-gradient(135deg, #fffbeb 0%, #f0fdf4 50%, #e0f2fe 100%);
+            min-height: 100vh;
             user-select: none;
+            -webkit-user-select: none;
             overflow: hidden;
         }
 
+        /* 隱藏滾動條 */
         * {
             scrollbar-width: none !important;
             -ms-overflow-style: none !important;
@@ -41,62 +44,117 @@
             height: auto;
         }
 
-        @keyframes pulse-warm {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        /* 陽光溫柔卡片浮動效果 */
+        .sun-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 3px solid #fde68a;
+            box-shadow: 0 10px 25px -5px rgba(251, 191, 36, 0.15), 0 8px 10px -6px rgba(251, 191, 36, 0.1);
         }
-        .pulse-box {
-            animation: pulse-warm 2s infinite ease-in-out;
+
+        /* 物資圖示漂浮旋轉動畫 */
+        @keyframes item-pop {
+            0% { transform: scale(0.6) rotate(-10deg); opacity: 0; }
+            70% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .animate-pop {
+            animation: item-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes box-bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-8px) scale(1.02); }
+        }
+        .box-active {
+            animation: box-bounce 2s ease-in-out infinite;
         }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col justify-between overflow-hidden">
+<body class="h-screen w-screen flex flex-col justify-between p-3 relative text-slate-800">
 
-    <!-- 頂部 Header -->
-    <header id="main-header" class="w-full px-6 py-3 border-b-2 border-amber-200 bg-white/80 backdrop-blur-md flex justify-between items-center z-10 flex-shrink-0 shadow-sm">
+    <!-- 全局 Toast 提示通知欄 -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-amber-500 text-white px-6 py-3 rounded-2xl shadow-2xl font-black flex items-center space-x-3 text-lg border-2 border-amber-200 pointer-events-none transition-all duration-300 opacity-0 -translate-y-12">
+        <span id="toast-icon" class="text-2xl">💡</span>
+        <span id="toast-msg">提示訊息</span>
+    </div>
+
+    <!-- 大螢幕 / 兩端頂部 Header -->
+    <header id="main-header" class="w-full px-6 py-2.5 rounded-2xl sun-card flex justify-between items-center z-10 flex-shrink-0 mb-2">
         <div class="flex items-center space-x-3">
-            <span class="text-3xl">🎁</span>
-            <h1 class="text-2xl md:text-3xl font-black tracking-wider text-amber-900">
-                安得烈慈善協會 <span class="bg-amber-100 text-amber-800 text-base px-3 py-1 rounded-full border border-amber-300">志工打包大挑戰</span>
+            <span class="text-3xl">🍞</span>
+            <h1 class="text-2xl md:text-3xl font-black text-amber-900 tracking-wide flex items-center gap-2">
+                安得烈食物銀行 <span class="bg-amber-100 text-amber-800 text-base px-3 py-1 rounded-full border border-amber-300">志工打包大挑戰</span>
             </h1>
         </div>
-        <div id="game-stage-badge" class="px-4 py-1.5 rounded-full text-base font-bold bg-amber-100 border border-amber-300 text-amber-900">
-            掃碼準備開賽
+        <div class="flex items-center gap-3">
+            <button id="bgm-toggle-btn" onclick="toggleBGM()" class="bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 px-4 py-1.5 rounded-full text-sm font-bold flex items-center space-x-1.5 border border-amber-300 shadow-sm transition">
+                <span id="bgm-icon">🎵</span>
+                <span id="bgm-text">背景音樂: 關</span>
+            </button>
+            <div id="game-stage-badge" class="px-4 py-1.5 rounded-full text-sm md:text-base font-black bg-emerald-100 border border-emerald-300 text-emerald-800">
+                ☀️ 陽光體驗模式
+            </div>
         </div>
     </header>
 
-    <!-- 主要內容區域 -->
-    <main class="flex-grow flex items-center justify-center p-2 md:p-4 relative overflow-hidden">
+    <!-- 主要內容區 -->
+    <main class="flex-grow flex items-center justify-center relative overflow-hidden w-full max-w-[98vw] mx-auto">
 
-        <!-- 大螢幕 - 遊戲大廳 / 掃碼進入 -->
-        <div id="view-lobby" class="w-full max-w-[96vw] h-full max-h-[90vh] bg-white/80 border-4 border-amber-300 rounded-3xl p-4 md:p-6 shadow-xl backdrop-blur-md relative flex flex-col justify-between overflow-hidden">
+        <!-- 大螢幕 - QR 連線大廳 -->
+        <div id="view-lobby" class="w-full h-full sun-card rounded-3xl p-6 relative flex flex-col justify-between overflow-hidden">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center h-full">
                 
-                <!-- 左側：QR Code (依安得烈大哉問聯網最終版) -->
+                <!-- 左側：QR Code (完全依照「安得烈大哉問聯網最終版」尺寸480x480無文字) -->
                 <div class="md:col-span-6 lg:col-span-7 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-amber-200 pr-0 md:pr-6 pb-2 md:pb-0 text-center h-full overflow-hidden">
-                    <div class="p-5 bg-gradient-to-br from-amber-300 via-orange-300 to-amber-400 rounded-3xl shadow-lg my-auto transition-transform hover:scale-[1.02] duration-300">
+                    <div class="p-5 bg-gradient-to-br from-amber-300 via-orange-300 to-yellow-200 rounded-3xl shadow-[0_0_50px_rgba(251,191,36,0.4)] my-auto transition-transform hover:scale-[1.02] duration-300">
                         <div id="qrcode" class="bg-white p-4 rounded-2xl border-2 border-white flex items-center justify-center shadow-inner"></div>
                     </div>
                 </div>
 
-                <!-- 右側：玩家名單 & 開始按鈕 -->
+                <!-- 右側：玩家名單 & 設定選項 (更改為 2 個選單：測驗箱數、AI參賽人數) -->
                 <div class="md:col-span-6 lg:col-span-5 flex flex-col justify-between h-full overflow-hidden pl-0 md:pl-2">
                     <div class="flex-grow flex flex-col overflow-hidden">
                         <h2 class="text-2xl md:text-3xl font-black text-amber-900 mb-4 flex items-center justify-between flex-shrink-0">
                             <span class="flex items-center gap-2"><i class="fa-solid fa-users"></i> 已加入愛心志工</span>
-                            <span id="player-count-badge" class="text-xl bg-amber-100 text-amber-800 px-4 py-1.5 rounded-full font-black border border-amber-300">0 人</span>
+                            <span id="player-count-badge" class="text-lg bg-amber-100 text-amber-900 px-4 py-1.5 rounded-full font-black border border-amber-300">0 人</span>
                         </h2>
 
                         <div id="player-list-lobby" class="grid grid-cols-2 lg:grid-cols-3 gap-2.5 overflow-hidden flex-grow content-start">
-                            <div class="col-span-full text-amber-700/60 text-center py-12 font-bold border-2 border-dashed border-amber-300 rounded-2xl text-lg">
-                                掃描左側 QR Code 進入加入比賽...
+                            <div class="col-span-full text-amber-700/60 text-center py-12 font-bold border-2 border-dashed border-amber-200 rounded-2xl text-lg">
+                                ☀️ 請掃描左側 QR Code 加入志工隊伍...
                             </div>
                         </div>
                     </div>
 
-                    <div id="lobby-start-box" class="w-full pt-4 flex-shrink-0">
-                        <button id="btn-start-game" onclick="startGame()" class="hidden w-full py-4 text-3xl font-black text-white bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl shadow-lg hover:brightness-105 active:scale-95 transition-all animate-bounce border-b-4 border-green-800">
-                            🚀 開啟體驗競賽！
+                    <!-- 遊戲參數設定區塊 (已修正為二項：測驗箱數與AI參賽人數) -->
+                    <div class="w-full pt-4 flex-shrink-0 bg-amber-50/80 border-2 border-amber-200 rounded-2xl p-4 my-2">
+                        <h3 class="text-amber-900 font-black text-base mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders"></i> 挑戰規則設定
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-1">
+                                <label for="select-box-count" class="text-xs text-amber-800 font-black">測驗箱數 (題目數)</label>
+                                <select id="select-box-count" class="bg-white text-amber-900 font-black p-2.5 rounded-xl border-2 border-amber-300 outline-none focus:border-amber-500 cursor-pointer shadow-sm">
+                                    <option value="1">1 箱</option>
+                                    <option value="3" selected>3 箱</option>
+                                    <option value="5">5 箱</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label for="select-ai-count" class="text-xs text-amber-800 font-black">AI參賽人數</label>
+                                <select id="select-ai-count" class="bg-white text-amber-900 font-black p-2.5 rounded-xl border-2 border-amber-300 outline-none focus:border-amber-500 cursor-pointer shadow-sm">
+                                    <option value="1" selected>1 名</option>
+                                    <option value="2">2 名</option>
+                                    <option value="3">3 名</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="lobby-start-box" class="w-full pt-2 flex-shrink-0">
+                        <button id="btn-start-game" class="hidden w-full py-3.5 text-2xl font-black text-white bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 rounded-2xl shadow-lg active:scale-95 transition-all border-b-4 border-green-700 flex items-center justify-center gap-2">
+                            🚀 開始志工體驗挑戰
                         </button>
                     </div>
                 </div>
@@ -104,230 +162,336 @@
             </div>
         </div>
 
-        <!-- 手機端 - 玩家控制器 -->
+        <!-- 手機端 - 玩家控制器 (僅顯示：姓名、題數、波次及放進箱子的物資含圖示) -->
         <div id="view-player-mobile" class="hidden fixed inset-0 z-50 bg-amber-50/95 p-4 flex-col justify-between overflow-hidden">
-            <div id="mobile-top-bar" class="text-center space-y-1 flex-shrink-0 bg-white p-3 rounded-2xl border-2 border-amber-200 shadow-sm">
-                <span class="text-3xl">🎁</span>
-                <h2 class="text-xl font-black text-amber-900">安得烈志工體驗控制器</h2>
-                <p id="player-mobile-name" class="text-amber-700 font-bold text-base">正在連線大螢幕...</p>
-                
-                <div id="mobile-info-badge" class="hidden bg-emerald-100 border border-emerald-300 py-1 px-3 rounded-xl text-emerald-900 font-black text-base flex justify-around">
-                    <span id="mobile-q-text">第 1/4 題</span>
-                    <span id="mobile-w-text">第 1 波</span>
-                </div>
-            </div>
-
-            <!-- 輸入姓名加入 -->
-            <div id="mobile-join-form" class="space-y-4 bg-white p-6 rounded-3xl border-4 border-amber-300 shadow-xl my-auto">
-                <h3 class="text-xl font-black text-amber-900 text-center">輸入姓名參與打包</h3>
-                <input type="text" id="mobile-name-input" maxlength="8" placeholder="請輸入姓名/暱稱..." 
-                    class="w-full bg-amber-50 border-2 border-amber-300 p-4 rounded-2xl text-center text-amber-900 text-xl font-bold focus:border-amber-500 outline-none">
-                <button id="btn-mobile-join" onclick="mobileJoin()" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl rounded-2xl shadow-lg border-b-4 border-emerald-700">
-                    確認登錄
-                </button>
-            </div>
-
-            <!-- 選擇物資對應面板 -->
-            <div id="mobile-game-panel" class="hidden flex-col my-auto space-y-3">
-                <div class="text-center bg-white p-2 rounded-xl border border-amber-200 shadow-sm">
-                    <span class="text-xs font-bold text-gray-500 block">本波放入食物箱物資（選擇 1 個）：</span>
-                </div>
-                <div id="mobile-options-grid" class="grid grid-cols-2 gap-3 w-full max-h-[50vh] overflow-y-auto p-1">
-                    <!-- JS 動態生成選項按鈕 -->
-                </div>
-            </div>
-
-            <!-- 最終結算 -->
-            <div id="mobile-final-result" class="hidden my-auto flex-col items-center justify-center space-y-4 text-center bg-white border-4 border-amber-300 p-6 rounded-3xl shadow-xl w-full">
-                <span class="text-6xl" id="mobile-result-icon">🏆</span>
-                <h2 class="text-2xl font-black text-amber-900">競賽結算完成！</h2>
-                
-                <div class="text-3xl font-black text-emerald-600 my-2">
-                    個人總得分：<span id="mobile-result-score">0</span> 分
-                </div>
-                <div class="text-base font-bold text-amber-800" id="mobile-result-rank">
-                    排名：第 - 名
-                </div>
-            </div>
-
-            <div id="mobile-status-text" class="text-center text-amber-800 font-bold py-1 text-sm flex-shrink-0">
-                連線成功！請輸入姓名點擊登錄
-            </div>
-        </div>
-
-        <!-- 大螢幕 - 遊戲主畫面 -->
-        <div id="view-game" class="hidden w-full h-full max-h-[96vh] grid grid-cols-1 md:grid-cols-12 gap-4 overflow-hidden">
             
-            <!-- 左側：實時分數排行榜 (1/3寬度相當) -->
-            <div class="md:col-span-4 lg:col-span-3 bg-white/90 border-4 border-amber-300 rounded-3xl p-4 shadow-xl backdrop-blur-md flex flex-col justify-between overflow-hidden h-full">
-                <div class="overflow-hidden flex flex-col h-full">
-                    <h3 class="text-amber-900 text-xl font-black mb-3 flex items-center justify-between flex-shrink-0 border-b-2 border-amber-200 pb-2">
-                        <span>🏆 愛心積分排行榜</span>
-                        <span id="game-total-players-badge" class="text-sm bg-amber-100 text-amber-800 px-3 py-1 rounded-full border border-amber-300">0 人</span>
-                    </h3>
-                    <div id="players-dashboard" class="flex flex-col space-y-2.5 overflow-y-auto flex-grow pr-1"></div>
+            <div id="mobile-join-form" class="space-y-4 bg-white p-6 rounded-3xl border-4 border-amber-300 shadow-xl my-auto">
+                <div class="text-center">
+                    <span class="text-5xl">🎁</span>
+                    <h2 class="text-2xl font-black text-amber-900 mt-2">安得烈志工報到</h2>
+                    <p class="text-xs font-bold text-amber-700">請輸入暱稱準備進行物資打包！</p>
                 </div>
+                <input type="text" id="mobile-name-input" maxlength="8" placeholder="請輸入您的暱稱..." 
+                    class="w-full bg-amber-50 border-2 border-amber-300 p-4 rounded-2xl text-center text-amber-900 text-xl font-black focus:border-amber-500 outline-none">
+                <button id="btn-mobile-join" class="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-400 text-white font-black text-xl rounded-2xl shadow-lg active:scale-95 border-b-4 border-orange-600">
+                    確認參賽
+                </button>
             </div>
 
-            <!-- 中間/右側：題目說明 & 放大的食物箱實體 (2/3寬度相當) -->
-            <div class="md:col-span-8 lg:col-span-9 bg-white/95 border-4 border-emerald-300 rounded-3xl p-5 shadow-xl backdrop-blur-md flex flex-col justify-between overflow-hidden h-full relative">
+            <!-- 手機端遊戲控制與狀態顯示面板 -->
+            <div id="mobile-game-panel" class="hidden h-full flex-col justify-between py-2">
                 
-                <!-- 題目與波次資訊標頭 -->
-                <div class="w-full flex-shrink-0 border-b-2 border-emerald-100 pb-3">
-                    <div class="flex justify-between items-center mb-2">
-                        <div class="flex items-center space-x-2">
-                            <span id="question-badge" class="bg-amber-400 text-amber-950 px-3 py-1 rounded-full font-black text-sm">
-                                第 1/4 題
-                            </span>
-                            <span id="wave-badge" class="bg-emerald-500 text-white px-3 py-1 rounded-full font-black text-sm">
-                                第 1 波 (5s)
-                            </span>
-                        </div>
-                        <!-- 倒數計時大數字 -->
-                        <div id="timer-display" class="text-3xl font-black text-amber-900 bg-amber-100 px-4 py-1 rounded-2xl border border-amber-300">
-                            ⏱️ 5s
-                        </div>
+                <!-- 上方：姓名、題數與波次頂部欄 -->
+                <div class="bg-white p-4 rounded-2xl border-2 border-amber-300 shadow-md flex justify-between items-center">
+                    <div>
+                        <span class="text-xs text-amber-700 font-bold block">志工姓名</span>
+                        <span id="mobile-user-name" class="text-lg font-black text-amber-900">--</span>
                     </div>
-
-                    <h2 id="current-box-title" class="text-2xl md:text-3xl font-black text-emerald-900 mb-1">
-                        長青食物箱 (65-80歲)
-                    </h2>
-                    <p id="current-box-desc" class="text-sm font-bold text-emerald-700">
-                        說明：請從各波選項中挑選適合該對象的物資放入箱內！
-                    </p>
+                    <div class="text-center">
+                        <span class="text-xs text-amber-700 font-bold block">當前箱數</span>
+                        <span id="mobile-box-num" class="text-lg font-black text-emerald-600">第 1/3 箱</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-amber-700 font-bold block">當前波次</span>
+                        <span id="mobile-wave-num" class="text-lg font-black text-orange-600">第 1/4 波</span>
+                    </div>
                 </div>
 
-                <!-- 中間：放到最大的食物箱主體 -->
-                <div class="flex-grow flex flex-col justify-center items-center my-3 relative">
-                    <!-- 大食物箱外框 -->
-                    <div class="w-full max-w-2xl bg-amber-100/80 rounded-3xl p-6 border-4 border-dashed border-amber-400 shadow-inner flex flex-col items-center justify-center pulse-box min-h-[280px]">
-                        
-                        <div class="text-amber-800 font-black text-lg mb-4 flex items-center gap-2">
-                            <span>📦 安得烈專用食物箱</span>
-                            <span class="text-xs bg-amber-200 px-2.5 py-0.5 rounded-full">(已放入 <span id="packed-count">0</span> / 4 樣物資)</span>
-                        </div>
-
-                        <!-- 箱內物資顯示格 (4 波 slots) -->
-                        <div id="box-slots-grid" class="grid grid-cols-2 gap-4 w-full">
-                            <!-- JS 動態渲染 4 波累積物資 -->
+                <!-- 中間：已放進食物箱的物資清單 (含圖示與文字) -->
+                <div class="bg-white/90 p-5 rounded-3xl border-3 border-amber-300 shadow-inner flex-grow my-4 flex flex-col justify-start">
+                    <h3 class="text-amber-900 font-black text-base mb-3 flex items-center justify-between border-b pb-2">
+                        <span>📦 已放入食物箱的物資</span>
+                        <span id="mobile-item-count" class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold">0 / 4 樣</span>
+                    </h3>
+                    <div id="mobile-packed-items" class="grid grid-cols-2 gap-3 overflow-y-auto max-h-[50vh]">
+                        <div class="col-span-2 text-center text-amber-700/50 py-10 font-bold border-2 border-dashed border-amber-200 rounded-2xl">
+                            等待您選擇物資放進食物箱...
                         </div>
                     </div>
                 </div>
 
-                <!-- 下方提示 -->
-                <div class="w-full text-center bg-amber-50 p-2.5 rounded-2xl border border-amber-200 text-xs font-bold text-amber-800 flex-shrink-0">
-                    💡 計分規則：物資答對 1 樣 +5 分；答對該波剩餘秒數每 1 秒 +1 分！4 題後統計總分！
+                <!-- 下方：操作響應訊息 -->
+                <div id="mobile-status-text" class="text-center bg-amber-200/80 text-amber-900 font-black py-3 px-4 rounded-2xl text-base border border-amber-300">
+                    ☀️ 準備好了！請查看大螢幕進行選物！
                 </div>
             </div>
         </div>
 
-        <!-- 大螢幕 - 最終頒獎畫面 -->
-        <div id="view-result" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-6">
-            <div class="w-full max-w-4xl bg-white border-8 border-amber-400 rounded-3xl p-8 flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
-                <span class="text-6xl mb-2">🏆</span>
-                <h2 class="text-3xl md:text-4xl font-black text-amber-900 mb-2">安得烈愛心志工服務體驗 - 榮譽榜</h2>
-                <p class="text-amber-700 font-bold mb-6">感謝大家的熱情參與，愛心打包任務順利完成！</p>
+        <!-- 大螢幕 - 題目波次間隔 Splash -->
+        <div id="view-question-splash" class="hidden fixed inset-0 z-40 bg-amber-50/95 backdrop-blur-md flex flex-col items-center justify-center">
+            <span id="splash-box-title" class="text-2xl text-amber-800 font-black tracking-wider mb-2">🥣 膳糧食物箱</span>
+            <h1 id="splash-wave-text" class="text-6xl md:text-8xl font-black text-amber-900 drop-shadow-md">
+                第 1 波物資選擇
+            </h1>
+            <p class="text-xl text-amber-700 font-bold mt-4 animate-bounce">⏱️ 每波倒數 5 秒！準備好手速！</p>
+        </div>
 
-                <!-- 得分排行榜總結 -->
-                <div id="final-leaderboard" class="w-full max-h-[50vh] overflow-y-auto space-y-3 p-2 my-2">
-                    <!-- JS 渲染所有人分數 -->
+        <!-- 大螢幕 - 遊戲主畫面 (左側排行榜，中間大箱子與周圍物資) -->
+        <div id="view-game" class="hidden w-full h-full max-h-[92vh] grid grid-cols-1 md:grid-cols-12 gap-4 overflow-hidden">
+            
+            <!-- 左側：實時分數排行榜 -->
+            <div class="md:col-span-4 lg:col-span-3 sun-card rounded-3xl p-4 flex flex-col justify-between overflow-hidden h-full">
+                <div class="overflow-hidden flex flex-col h-full">
+                    <h3 class="text-amber-900 text-xl font-black mb-3 flex items-center justify-between flex-shrink-0 border-b border-amber-200 pb-2">
+                        <span>🏆 志工積分排行榜</span>
+                        <span id="game-total-players-badge" class="text-xs bg-amber-100 text-amber-900 px-3 py-1 rounded-full border border-amber-300">0 人</span>
+                    </h3>
+                    <div id="players-dashboard" class="flex flex-col space-y-2 overflow-hidden flex-grow"></div>
+                </div>
+                <div class="mt-2 pt-2 border-t border-amber-200 text-center flex-shrink-0">
+                    <span id="round-status-hint" class="text-emerald-700 font-black text-sm">✨ 打包進行中，每波搶答領先加分！</span>
+                </div>
+            </div>
+
+            <!-- 右側 (中間)：大箱子 (佔據視覺核心) 與周圍放置答案圖示 -->
+            <div class="md:col-span-8 lg:col-span-9 sun-card rounded-3xl p-5 shadow-2xl flex flex-col justify-between overflow-hidden h-full relative">
+                
+                <!-- 頂部波次與倒數條 -->
+                <div class="w-full flex-shrink-0">
+                    <div class="w-full bg-amber-100 h-3.5 rounded-full mb-3 overflow-hidden border border-amber-200">
+                        <div id="timer-bar" class="h-full bg-gradient-to-r from-amber-400 to-orange-500 w-full transition-all duration-100 ease-linear"></div>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="flex items-center gap-3">
+                            <span id="box-type-badge" class="bg-amber-500 text-white font-black text-sm px-3 py-1 rounded-full shadow">
+                                🥣 膳糧食物箱
+                            </span>
+                            <span id="wave-number" class="text-amber-900 font-black text-xl md:text-2xl">
+                                第 1 箱 - 第 1 / 4 波
+                            </span>
+                        </div>
+                        <span id="timer-text" class="text-3xl font-black text-orange-600 animate-pulse">⏱️ 5s</span>
+                    </div>
+
+                    <!-- 箱子任務指示與說明 -->
+                    <div class="bg-amber-50/80 rounded-2xl p-3 border border-amber-200 text-center mb-3">
+                        <p id="box-instruction" class="text-base md:text-lg font-black text-amber-900">
+                            任務：請從四周選取合格物資放進箱子！（不可放入違禁物）
+                        </p>
+                    </div>
                 </div>
 
-                <button onclick="location.reload()" class="mt-6 px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl rounded-2xl shadow-lg border-b-4 border-emerald-700 transition">
-                    🔄 重新開始挑戰
-                </button>
+                <!-- 中央大箱子與四周答案 Option 佈局 -->
+                <div class="relative flex-grow flex items-center justify-center my-2 p-2 min-h-[320px]">
+                    
+                    <!-- 中央超大實體食物箱 (佔據視覺中心) -->
+                    <div id="main-big-box" class="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-3xl border-8 border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-4">
+                        <div class="text-6xl md:text-7xl mb-1">📦</div>
+                        <span id="big-box-name" class="text-2xl md:text-3xl font-black text-amber-900 text-center tracking-wider">
+                            長青食物箱
+                        </span>
+                        <div id="big-box-items-preview" class="flex flex-wrap gap-2 justify-center mt-3 max-w-[90%]">
+                            <!-- 已放入箱子物資動態縮圖 -->
+                        </div>
+                    </div>
+
+                    <!-- 周圍四周環繞的答案選項圖示 (最少1個正確+其他) -->
+                    <div id="options-around-container" class="absolute inset-0 grid grid-cols-2 md:grid-cols-4 gap-4 items-center justify-items-center p-2 z-20 pointer-events-auto">
+                        <!-- JS 動態填入卡片 -->
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 大螢幕 - 最終頒獎結算畫面 -->
+        <div id="view-result" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-amber-900/60 backdrop-blur-md p-6">
+            <div class="w-full max-w-6xl h-full max-h-[90vh] bg-white border-8 border-amber-300 rounded-3xl p-6 flex flex-col justify-between shadow-2xl overflow-hidden relative">
+                
+                <h2 class="text-3xl md:text-5xl font-black text-center text-amber-900 mb-2 flex-shrink-0">
+                    🏆 志工打包大挑戰 榮譽頒獎 🏆
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 flex-grow overflow-hidden my-2">
+                    
+                    <div class="md:col-span-4 bg-amber-50 rounded-2xl p-4 border border-amber-200 flex flex-col justify-between overflow-hidden">
+                        <div class="flex justify-between items-center mb-3 border-b border-amber-200 pb-2 flex-shrink-0">
+                            <span class="font-black text-xl text-amber-900">全場排行</span>
+                            <span id="result-left-count" class="text-xs bg-amber-200 text-amber-900 px-2.5 py-1 rounded-full font-bold">0 人</span>
+                        </div>
+                        <div id="result-left-list" class="space-y-2 overflow-y-auto pr-1 flex-grow"></div>
+                    </div>
+
+                    <div class="md:col-span-8 bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center overflow-hidden shadow-inner">
+                        <span class="text-amber-800 font-black tracking-widest text-sm mb-3">TOP 3 WINNERS</span>
+                        <div id="top3-container" class="w-full flex flex-col items-center space-y-4 my-auto"></div>
+                    </div>
+
+                </div>
+
             </div>
         </div>
 
     </main>
 
-    <footer id="main-footer" class="w-full py-2 px-4 border-t border-amber-200 bg-white/80 text-center text-amber-800 text-xs font-bold flex-shrink-0">
-        安得烈慈善協會 關懷弱勢・愛心打包體驗
+    <footer id="main-footer" class="w-full py-1.5 px-4 rounded-xl sun-card text-center text-amber-800 text-xs flex-shrink-0 font-bold mt-2">
+        安得烈食物銀行 關懷弱勢・愛合格不浪費 | 志工服務體驗互動遊戲
     </footer>
 
     <script>
         /* ==========================================================================
-           1. 6 種隨機食物箱與禁用物資資料庫
+           1. 物資庫與食物箱資料結構 (嚴格依據規格)
            ========================================================================== */
+        
+        // 6 種允許物資食物箱定義
         const FOOD_BOXES = [
             {
                 id: 'baby',
-                name: '嬰兒物資箱(0-3歲)',
-                allowed: ['嬰兒奶粉', '嬰幼兒尿布', '嬰幼兒濕紙巾', '衛生紙']
+                name: '1.嬰兒物資箱(0-3歲)',
+                allowed: ['嬰兒奶粉', '嬰幼兒尿布', '嬰幼兒濕紙巾', '衛生紙'],
+                icon: '🍼'
             },
             {
-                id: 'food_kid',
-                name: '膳糧食物箱(3-15歲)',
-                allowed: ['保久乳', '肉鬆', '沖泡麥片', '肉類罐頭', '麵條', '肉類調理包', '白米']
+                id: 'kid',
+                name: '2.膳糧食物箱(3-15歲)',
+                allowed: ['保久乳', '肉鬆', '沖泡麥片', '肉類罐頭', '玉米罐頭', '麵條', '肉類調理包', '白米'],
+                icon: '🥣'
             },
             {
-                id: 'vegetarian',
-                name: '素食食物箱',
-                allowed: ['素肉鬆', '沖泡麥片', '玉米罐頭', '麵條', '素食調理包', '白米']
+                id: 'veg',
+                name: '3.素食食物箱',
+                allowed: ['素肉鬆', '沖泡麥片', '玉米罐頭', '麵條', '素食調理包', '白米'],
+                icon: '🥗'
             },
             {
-                id: 'elder_senior',
-                name: '長青食物箱(65-80歲)',
-                allowed: ['白米', '麵條', '滴雞精', '軟質粥品(少油低鈉)', '沖泡麥片', '易咬餅乾']
+                id: 'elder',
+                name: '4.長青食物箱(65-80歲)',
+                allowed: ['白米', '麵條', '滴雞精', '軟質粥品(少油低鈉)', '沖泡麥片', '易咬餅乾'],
+                icon: '👵'
             },
             {
-                id: 'elder_pine',
-                name: '松柏食物箱(80歲以上)',
-                allowed: ['滴雞精', '軟質粥品(少油低鈉)', '沖泡麥片', '易咬餅乾']
+                id: 'pine',
+                name: '5.松柏食物箱(80歲以上)',
+                allowed: ['滴雞精', '軟質粥品(少油低鈉)', '沖泡麥片', '易咬餅乾'],
+                icon: '🧓'
             },
             {
                 id: 'project',
-                name: '專案食物箱',
-                allowed: ['醫囑營養品', '尿布', '衛生紙', '專案物資']
+                name: '6.專案食物箱',
+                allowed: ['醫囑營養品', '尿布', '衛生紙', '專案物資'],
+                icon: '🏥'
             }
         ];
 
+        // 絕對禁忌放物資 (11種)
         const FORBIDDEN_ITEMS = [
             '辣味豆干', '辣味罐頭', '玻璃罐頭', '辣味調理包', '麻辣鴨血', 
-            '咖啡', '洋芋片', '泡麵', '碳酸飲料', '生鮮蔬菜', '高鈉醬瓜'
+            '咖啡', '洋芋片', '泡麵', '碳酸飲料', '生鮮蔬菜', '醬瓜罐頭'
         ];
 
-        // 收集所有允許物資總庫，方便產生干擾項
-        const ALL_ALLOWED_ITEMS = Array.from(new Set(FOOD_BOXES.flatMap(b => b.allowed)));
+        // 物資名稱對應 Icon 字典 (陽光豐富風格)
+        const ITEM_ICONS = {
+            '嬰兒奶粉': '🍼', '嬰幼兒尿布': '👶', '嬰幼兒濕紙巾': '🧻', '衛生紙': '🧻',
+            '保久乳': '🥛', '肉鬆': '🥫', '沖泡麥片': '🥣', '肉類罐頭': '🍖', '玉米罐頭': '🌽',
+            '麵條': '🍜', '肉類調理包': '🍛', '白米': '🌾', '素肉鬆': '🥫', '素食調理包': '🥗',
+            '滴雞精': '🐓', '軟質粥品(少油低鈉)': '🍲', '易咬餅乾': '🍪', '醫囑營養品': '🩺',
+            '尿布': '👶', '專案物資': '🎁',
+            
+            // 禁忌物資 Icon
+            '辣味豆干': '🌶️', '辣味罐頭': '🌶️', '玻璃罐頭': '🫙', '辣味調理包': '🌶️',
+            '麻辣鴨血': '🍲', '咖啡': '☕', '洋芋片': '🥔', '泡麵': '🍜', '碳酸飲料': '🥤',
+            '生鮮蔬菜': '🥬', '醬瓜罐頭': '🫙'
+        };
 
-        /* ==========================================================================
-           2. Web Audio API 音效與音樂
-           ========================================================================== */
-        let audioCtx = null;
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        function getItemIcon(itemName) {
+            return ITEM_ICONS[itemName] || '📦';
         }
 
-        function playSound(freq, duration, type = 'sine') {
-            if (!audioCtx) return;
+        /* ==========================================================================
+           2. 全局遊戲狀態與變數
+           ========================================================================== */
+        let peer = null;
+        let hostConn = null;
+        let players = [];
+        let myPlayerId = null;
+
+        let totalBoxCount = 3;       // 選定之測驗箱數 (1, 3, 5)
+        let currentBoxIndex = 0;     // 當前第幾箱 (0-based)
+        let currentWaveIndex = 0;    // 當前波次 (0..3)
+        let currentBoxData = null;   // 當前食物箱定義
+        let currentWaveOptions = []; // 當前波次 4 個選項 [{name, icon, isCorrect}]
+        let boxUsedCorrectItems = [];// 本箱已出現過的正確答案，避免重複
+
+        let timerInterval = null;
+        let aiTimeouts = [];
+        let isTransitioning = false;
+        let waveTimeLeft = 5;
+
+        let audioCtx = null;
+        let isBgmPlaying = false;
+        let bgmTimerId = null;
+
+        /* ==========================================================================
+           3. 音效與 Web Audio 聲響
+           ========================================================================== */
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSingleNote(freq, duration, type = 'sine', gainVal = 0.1) {
+            if (!audioCtx || freq <= 0) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = type;
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
             osc.stop(audioCtx.currentTime + duration);
         }
 
-        /* ==========================================================================
-           3. PeerJS 連線機制 (完全依據「安得烈大哉問聯網最終版」)
-           ========================================================================== */
-        let peer = null;
-        let hostConn = null;
-        let players = [];
-        let myPlayerId = null;
-        let myName = "";
+        // 溫柔陽光 BGM 循環
+        function playSunBgm() {
+            initAudio();
+            stopBgm();
+            isBgmPlaying = true;
+            const notes = [261.63, 329.63, 392.00, 523.25, 440.00, 392.00, 329.63];
+            let idx = 0;
 
+            function loop() {
+                if (!isBgmPlaying) return;
+                playSingleNote(notes[idx], 0.3, 'triangle', 0.05);
+                idx = (idx + 1) % notes.length;
+                bgmTimerId = setTimeout(loop, 400);
+            }
+            loop();
+        }
+
+        function stopBgm() {
+            isBgmPlaying = false;
+            if (bgmTimerId) {
+                clearTimeout(bgmTimerId);
+                bgmTimerId = null;
+            }
+        }
+
+        function toggleBGM() {
+            if (isBgmPlaying) {
+                stopBgm();
+                document.getElementById('bgm-text').innerText = "背景音樂: 關";
+            } else {
+                playSunBgm();
+                document.getElementById('bgm-text').innerText = "背景音樂: 開";
+            }
+        }
+
+        /* ==========================================================================
+           4. PeerJS 網路連線邏輯
+           ========================================================================== */
         window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
             const hostId = urlParams.get('host');
 
             if (hostId) {
-                // 手機端視頭
                 document.getElementById('main-header').classList.add('hidden');
                 document.getElementById('main-footer').classList.add('hidden');
                 document.getElementById('view-lobby').style.display = 'none';
@@ -335,18 +499,18 @@
                 document.getElementById('view-player-mobile').classList.add('flex');
                 initMobileController(hostId);
             } else {
-                // 主螢幕端
                 initHostPeer();
             }
         };
 
         function initHostPeer() {
             peer = new Peer();
+            
             peer.on('open', (id) => {
                 const joinUrl = `${window.location.href.split('?')[0]}?host=${id}`;
                 document.getElementById("qrcode").innerHTML = "";
                 
-                // 大尺寸 QR 碼 480x480
+                // 完全依照「安得烈大哉問聯網最終版」之 QR 尺寸與無文字
                 new QRCode(document.getElementById("qrcode"), {
                     text: joinUrl,
                     width: 480,
@@ -359,8 +523,15 @@
                     conn.on('data', (data) => {
                         if (data.type === 'JOIN') {
                             addPlayer(data.name, conn, data.playerId);
-                        } else if (data.type === 'SUBMIT_CHOICE') {
-                            handlePlayerChoice(data.playerId, data.choice, data.timeLeft);
+                        } else if (data.type === 'SUBMIT_WAVE_CHOICE') {
+                            const target = players.find(p => p.id === data.playerId);
+                            if (target && !target.waveAnswered) {
+                                target.waveAnswered = true;
+                                target.choiceIndex = data.choiceIndex;
+                                target.timeLeft = waveTimeLeft;
+                                renderPlayersDashboard();
+                                checkAllWaveAnswered();
+                            }
                         }
                     });
 
@@ -379,28 +550,81 @@
                 hostConn = peer.connect(hostId);
 
                 hostConn.on('open', () => {
-                    document.getElementById('player-mobile-name').innerText = "已連線至大螢幕";
+                    document.getElementById('mobile-status-text').innerText = "✓ 已成功連線至大螢幕！";
                 });
 
                 hostConn.on('data', (data) => {
-                    if (data.type === 'WAVE_START') {
-                        renderMobileOptions(data.options, data.qIndex, data.waveIndex);
-                    } else if (data.type === 'GAME_OVER') {
-                        showMobileFinalResult(data.rank, data.score);
+                    if (data.type === 'GAME_START') {
+                        document.getElementById('mobile-status-text').innerText = '🎮 挑戰開始！請觀看大螢幕選取物資！';
+                    } else if (data.type === 'WAVE_START') {
+                        document.getElementById('mobile-box-num').innerText = `第 ${data.boxIndex + 1}/${data.totalBoxes} 箱`;
+                        document.getElementById('mobile-wave-num').innerText = `第 ${data.waveIndex + 1}/4 波`;
+                        document.getElementById('mobile-status-text').innerText = '⏱️ 請看大螢幕周圍圖示進行選擇！';
+                    } else if (data.type === 'UPDATE_PACKED_ITEMS') {
+                        renderMobilePackedItems(data.packedItems);
+                    } else if (data.type === 'FINAL_RESULT') {
+                        document.getElementById('mobile-game-panel').classList.add('hidden');
+                        document.getElementById('mobile-status-text').innerText = `🏆 結算完成！您的排名：第 ${data.rank} 名，得分：${data.score} 分`;
                     }
                 });
             });
         }
 
+        document.getElementById('btn-mobile-join').addEventListener('click', () => {
+            const name = document.getElementById('mobile-name-input').value.trim();
+            if (!name) return showToast('請輸入您的暱稱！');
+
+            if (hostConn && hostConn.open) {
+                hostConn.send({ type: 'JOIN', name: name, playerId: myPlayerId });
+                document.getElementById('mobile-user-name').innerText = name;
+                document.getElementById('mobile-join-form').classList.add('hidden');
+                document.getElementById('mobile-game-panel').classList.remove('hidden');
+                document.getElementById('mobile-game-panel').classList.add('flex');
+            }
+        });
+
+        // 參賽者手機端僅顯示：姓名、題數、波次及放進箱子的物資(含圖示)
+        function renderMobilePackedItems(packedItems) {
+            const container = document.getElementById('mobile-packed-items');
+            container.innerHTML = '';
+            document.getElementById('mobile-item-count').innerText = `${packedItems.length} / 4 樣`;
+
+            if (packedItems.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-2 text-center text-amber-700/50 py-10 font-bold border-2 border-dashed border-amber-200 rounded-2xl">
+                        等待放進食物箱的物資...
+                    </div>
+                `;
+                return;
+            }
+
+            packedItems.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'flex items-center gap-2 p-3 bg-amber-100/80 rounded-2xl border border-amber-300 font-black text-amber-900 text-sm animate-pop';
+                el.innerHTML = `
+                    <span class="text-2xl">${getItemIcon(item)}</span>
+                    <span class="truncate">${item}</span>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        /* ==========================================================================
+           5. 大廳與玩家管理 (加入 AI 邏輯與小羅出現機率)
+           ========================================================================== */
         function addPlayer(name, conn, playerId) {
             if (players.some(p => p.id === playerId)) return;
+
             const p = {
                 id: playerId,
                 name: name,
                 conn: conn,
+                isAI: false,
                 score: 0,
-                currentChoices: [], // 記錄當前題目的波次選擇
-                waveAnswered: false
+                waveAnswered: false,
+                choiceIndex: null,
+                timeLeft: 0,
+                packedItems: []
             };
             players.push(p);
             renderLobbyPlayers();
@@ -417,352 +641,447 @@
 
             players.forEach(p => {
                 const item = document.createElement('div');
-                item.className = 'flex justify-between items-center bg-amber-100/80 p-2.5 rounded-2xl border border-amber-300 text-sm font-bold text-amber-900';
+                item.className = 'flex justify-between items-center bg-white p-2.5 rounded-2xl border-2 border-amber-200 text-sm shadow-sm';
                 item.innerHTML = `
-                    <span class="truncate">👤 ${p.name}</span>
-                    <span class="text-xs bg-emerald-500 text-white px-2 py-0.5 rounded-full">已連線</span>
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="text-xl">${p.isAI ? '🤖' : '📱'}</span>
+                        <span class="font-bold text-amber-900 truncate">${p.name}</span>
+                    </div>
+                    <span class="text-[10px] ${p.isAI ? 'bg-orange-100 text-orange-800' : 'bg-emerald-100 text-emerald-800'} px-2 py-0.5 rounded-full font-bold flex-shrink-0">
+                        ${p.isAI ? 'AI' : '連線'}
+                    </span>
                 `;
                 container.appendChild(item);
             });
         }
 
-        function mobileJoin() {
-            const name = document.getElementById('mobile-name-input').value.trim();
-            if (!name) return alert('請輸入姓名！');
-            myName = name;
-
-            if (hostConn && hostConn.open) {
-                hostConn.send({ type: 'JOIN', name: name, playerId: myPlayerId });
-                document.getElementById('player-mobile-name').innerText = `志工：${name}`;
-                document.getElementById('mobile-join-form').classList.add('hidden');
-                document.getElementById('mobile-game-panel').classList.remove('hidden');
-                document.getElementById('mobile-game-panel').classList.add('flex');
-                document.getElementById('mobile-status-text').innerText = '準備開賽，請看大螢幕！';
-            }
-        }
-
-        /* ==========================================================================
-           4. 遊戲核心邏輯 (4題，每題4波，每波5秒倒數，間隔1秒)
-           ========================================================================== */
-        let gameQuestions = [];
-        let currentQIndex = 0;
-        let currentWaveIndex = 0; // 0~3 (4波)
-        let waveTimer = null;
-        let waveTimeLeft = 5;
-        let isWaveActive = false;
-
-        function startGame() {
+        document.getElementById('btn-start-game').addEventListener('click', () => {
             initAudio();
+            finalizeAndStartGame();
+        });
+
+        function finalizeAndStartGame() {
+            totalBoxCount = parseInt(document.getElementById('select-box-count').value, 10);
+            const aiCount = parseInt(document.getElementById('select-ai-count').value, 10);
+
+            // 安得烈小羅出現機率為總題數 (總箱數) * 1%
+            const andrewProb = totalBoxCount * 0.01;
+
+            if (aiCount > 0) {
+                for (let i = 0; i < aiCount; i++) {
+                    let isAndrew = Math.random() < andrewProb;
+                    let aiName = isAndrew ? '安得烈小羅' : `🤖 助人志工${i + 1}號`;
+                    
+                    players.push({
+                        id: 'ai_' + Date.now() + '_' + i,
+                        name: aiName,
+                        conn: null,
+                        isAI: true,
+                        isAndrew: isAndrew,
+                        score: 0,
+                        waveAnswered: false,
+                        choiceIndex: null,
+                        timeLeft: 0,
+                        packedItems: []
+                    });
+                }
+            }
+
+            renderLobbyPlayers();
+
             document.getElementById('view-lobby').classList.add('hidden');
             document.getElementById('main-header').classList.add('hidden');
             document.getElementById('main-footer').classList.add('hidden');
-
             document.getElementById('view-game').classList.remove('hidden');
             document.getElementById('view-game').classList.add('grid');
 
-            // 隨機抽選 4 題食物箱 (可重複或不重複)
-            gameQuestions = [];
-            for (let i = 0; i < 4; i++) {
-                const randomBox = FOOD_BOXES[Math.floor(Math.random() * FOOD_BOXES.length)];
-                gameQuestions.push(buildQuestionData(randomBox));
-            }
+            players.forEach(p => { if (p.conn) p.conn.send({ type: 'GAME_START' }); });
 
-            currentQIndex = 0;
-            startQuestion(currentQIndex);
+            currentBoxIndex = 0;
+            startNewBoxFlow(currentBoxIndex);
         }
 
-        // 建立單一題目 (4 波選項，每波保證最少1個正確答案+其它)
-        function buildQuestionData(box) {
-            const usedCorrectItems = [];
-            const waves = [];
-
-            for (let w = 0; w < 4; w++) {
-                // 從允許物資中挑出尚未出現過的正確物資 (如果用完則允許重挑)
-                let remainingAllowed = box.allowed.filter(x => !usedCorrectItems.includes(x));
-                if (remainingAllowed.length === 0) remainingAllowed = box.allowed;
-                
-                const correctItem = remainingAllowed[Math.floor(Math.random() * remainingAllowed.length)];
-                usedCorrectItems.push(correctItem);
-
-                // 挑選干擾項 (禁用物資或其他箱物資)
-                const distractors = [];
-                const otherAllowed = ALL_ALLOWED_ITEMS.filter(x => !box.allowed.includes(x));
-                
-                // 混入 1 個禁用物資 + 2 個其它箱物資
-                const forbiddenPick = FORBIDDEN_ITEMS[Math.floor(Math.random() * FORBIDDEN_ITEMS.length)];
-                distractors.push(forbiddenPick);
-
-                while (distractors.length < 3) {
-                    const pick = otherAllowed[Math.floor(Math.random() * otherAllowed.length)];
-                    if (!distractors.includes(pick)) distractors.push(pick);
-                }
-
-                // 合併並打亂產生 4 個選項
-                const waveOptions = [correctItem, ...distractors].sort(() => 0.5 - Math.random());
-                waves.push({
-                    correctItem: correctItem,
-                    options: waveOptions
-                });
+        /* ==========================================================================
+           6. 核心遊戲流程：食物箱與 4 波答題
+           ========================================================================== */
+        
+        // 隨機揀選 6 種食物箱之一
+        function startNewBoxFlow(boxIdx) {
+            if (boxIdx >= totalBoxCount) {
+                showFinalResult();
+                return;
             }
 
-            return {
-                box: box,
-                waves: waves
-            };
-        }
-
-        function startQuestion(qIdx) {
-            currentQIndex = qIdx;
+            // 隨機選擇 1 種食物箱，並重置箱內物資狀態
+            currentBoxData = FOOD_BOXES[Math.floor(Math.random() * FOOD_BOXES.length)];
+            boxUsedCorrectItems = [];
             currentWaveIndex = 0;
 
-            // 清空所有玩家當前題目的選擇
-            players.forEach(p => {
-                p.currentChoices = [];
-            });
+            players.forEach(p => p.packedItems = []);
 
-            renderBigBoxUI();
-            startWave(currentWaveIndex);
+            document.getElementById('big-box-name').innerText = currentBoxData.name.replace(/^\d+\./, '');
+            document.getElementById('box-type-badge').innerText = `${currentBoxData.icon} ${currentBoxData.name}`;
+
+            startWaveFlow(currentWaveIndex);
         }
 
-        function renderBigBoxUI() {
-            const qData = gameQuestions[currentQIndex];
-            document.getElementById('question-badge').innerText = `第 ${currentQIndex + 1}/4 題`;
-            document.getElementById('current-box-title').innerText = qData.box.name;
-            document.getElementById('packed-count').innerText = "0";
+        function startWaveFlow(waveIdx) {
+            clearAllTimers();
+            isTransitioning = true;
 
-            // 初始化 4 波 slots 凹槽
-            const container = document.getElementById('box-slots-grid');
-            container.innerHTML = '';
-            for (let i = 0; i < 4; i++) {
-                const slot = document.createElement('div');
-                slot.id = `box-slot-${i}`;
-                slot.className = "border-2 border-dashed border-amber-300 rounded-2xl p-3 flex items-center justify-center text-amber-500 font-bold text-sm bg-white/60 min-h-[60px]";
-                slot.innerText = `第 ${i + 1} 波物資放置槽`;
-                container.appendChild(slot);
-            }
+            // 畫面顯示波次 Splash
+            document.getElementById('splash-box-title').innerText = `${currentBoxData.icon} 箱數 ${currentBoxIndex + 1}/${totalBoxCount}：${currentBoxData.name}`;
+            document.getElementById('splash-wave-text').innerText = `第 ${waveIdx + 1} 波物資選擇`;
+            document.getElementById('view-question-splash').classList.remove('hidden');
+
+            setTimeout(() => {
+                document.getElementById('view-question-splash').classList.add('hidden');
+                loadWaveContent(waveIdx);
+            }, 1000);
         }
 
-        function startWave(wIdx) {
-            currentWaveIndex = wIdx;
+        // 產生該波選項 (最少 1 個正確答案，出現過的正確答案不重複)
+        function loadWaveContent(waveIdx) {
+            isTransitioning = false;
             waveTimeLeft = 5;
-            isWaveActive = true;
 
-            players.forEach(p => p.waveAnswered = false);
+            // 篩選出該食物箱尚未使用過的正確答案
+            const availableCorrect = currentBoxData.allowed.filter(item => !boxUsedCorrectItems.includes(item));
+            
+            // 選取 1 個正確答案
+            let chosenCorrect = availableCorrect[Math.floor(Math.random() * availableCorrect.length)];
+            // 如果合格物資取完，則備用取 allowed 的隨機一項
+            if (!chosenCorrect) chosenCorrect = currentBoxData.allowed[Math.floor(Math.random() * currentBoxData.allowed.length)];
 
-            const qData = gameQuestions[currentQIndex];
-            const waveData = qData.waves[wIdx];
+            boxUsedCorrectItems.push(chosenCorrect);
 
-            document.getElementById('wave-badge').innerText = `第 ${wIdx + 1} 波 (5s)`;
-            document.getElementById('timer-display').innerText = `⏱️ ${waveTimeLeft}s`;
+            // 收集其它不可放入物資與其它箱子裡的物資
+            const otherAllowedFromOtherBoxes = FOOD_BOXES.flatMap(b => b.allowed).filter(item => !currentBoxData.allowed.includes(item));
+            const candidateWrong = [...FORBIDDEN_ITEMS, ...otherAllowedFromOtherBoxes];
 
-            // 發送廣播給手機端
+            // 隨機取出 3 個錯誤答案
+            const shuffledWrong = shuffleArray(candidateWrong).slice(0, 3);
+
+            // 組合成 4 個選項並打亂
+            const rawOptions = [
+                { name: chosenCorrect, isCorrect: true },
+                { name: shuffledWrong[0], isCorrect: false },
+                { name: shuffledWrong[1], isCorrect: false },
+                { name: shuffledWrong[2], isCorrect: false }
+            ];
+            currentWaveOptions = shuffleArray(rawOptions);
+
             players.forEach(p => {
+                p.waveAnswered = false;
+                p.choiceIndex = null;
+                p.timeLeft = 0;
                 if (p.conn) {
                     p.conn.send({
                         type: 'WAVE_START',
-                        qIndex: currentQIndex + 1,
-                        waveIndex: wIdx + 1,
-                        options: waveData.options
+                        boxIndex: currentBoxIndex,
+                        totalBoxes: totalBoxCount,
+                        waveIndex: waveIdx
                     });
                 }
             });
 
-            renderPlayersLeaderboard();
+            document.getElementById('wave-number').innerText = `第 ${currentBoxIndex + 1} 箱 - 第 ${waveIdx + 1} / 4 波`;
+            document.getElementById('timer-text').innerText = `⏱️ ${waveTimeLeft}s`;
+            document.getElementById('timer-bar').style.width = '100%';
 
-            // 倒數計時
-            if (waveTimer) clearInterval(waveTimer);
-            waveTimer = setInterval(() => {
-                waveTimeLeft--;
-                document.getElementById('timer-display').innerText = `⏱️ ${waveTimeLeft}s`;
-                playSound(600, 0.05);
+            renderBigBoxPreview();
+            renderOptionsAround(currentWaveOptions);
+            renderPlayersDashboard();
 
-                if (waveTimeLeft <= 0) {
-                    clearInterval(waveTimer);
-                    endWave();
+            startWaveTimer();
+            triggerAIBehaviors();
+        }
+
+        // 大螢幕中央箱子周圍放滿 4 個選項圖示
+        function renderOptionsAround(options) {
+            const container = document.getElementById('options-around-container');
+            container.innerHTML = '';
+
+            options.forEach((opt, idx) => {
+                const card = document.createElement('div');
+                card.id = `option-card-${idx}`;
+                card.className = 'w-36 h-28 md:w-44 md:h-32 bg-white border-4 border-amber-300 rounded-2xl shadow-xl flex flex-col items-center justify-center p-2 cursor-pointer transform hover:scale-105 active:scale-95 transition pointer-events-auto bg-gradient-to-b from-white to-amber-50';
+                card.innerHTML = `
+                    <span class="text-4xl md:text-5xl mb-1">${getItemIcon(opt.name)}</span>
+                    <span class="text-xs md:text-sm font-black text-amber-900 text-center line-clamp-1">${opt.name}</span>
+                `;
+                card.onclick = () => hostDirectClickOption(idx);
+                container.appendChild(card);
+            });
+        }
+
+        // 大螢幕箱子內部物資預覽
+        function renderBigBoxPreview() {
+            const container = document.getElementById('big-box-items-preview');
+            container.innerHTML = '';
+            
+            // 預覽第一位玩家的物資或共同裝箱物資
+            const sampleItems = players.length > 0 ? players[0].packedItems : [];
+            sampleItems.forEach(item => {
+                const tag = document.createElement('span');
+                tag.className = 'bg-white/90 border border-amber-400 text-amber-900 text-xs font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm animate-pop';
+                tag.innerHTML = `<span>${getItemIcon(item)}</span> <span>${item}</span>`;
+                container.appendChild(tag);
+            });
+        }
+
+        function hostDirectClickOption(idx) {
+            // 提供大螢幕直接點擊體驗
+            if (players.length > 0) {
+                const hostP = players[0];
+                if (!hostP.waveAnswered) {
+                    hostP.waveAnswered = true;
+                    hostP.choiceIndex = idx;
+                    hostP.timeLeft = waveTimeLeft;
+                    renderPlayersDashboard();
+                    checkAllWaveAnswered();
                 }
-            }, 1000);
-        }
-
-        function handlePlayerChoice(playerId, choice, remainingTime) {
-            if (!isWaveActive) return;
-            const p = players.find(x => x.id === playerId);
-            if (p && !p.waveAnswered) {
-                p.waveAnswered = true;
-                p.currentChoices.push({
-                    wave: currentWaveIndex,
-                    choice: choice,
-                    timeLeft: remainingTime
-                });
-                renderPlayersLeaderboard();
             }
         }
 
-        function endWave() {
-            isWaveActive = false;
-            playSound(300, 0.2);
-
-            // 更新大螢幕中央箱子累積物資 (示範顯示第一位玩家選擇或代表物資)
-            const slot = document.getElementById(`box-slot-${currentWaveIndex}`);
-            if (slot) {
-                slot.className = "bg-white border-2 border-emerald-400 rounded-2xl p-3 flex items-center justify-center text-emerald-900 font-black text-base shadow-sm";
-                slot.innerText = `✨ 第 ${currentWaveIndex + 1} 波打包完成`;
-            }
-            document.getElementById('packed-count').innerText = currentWaveIndex + 1;
-
-            // 判斷是否有下一波
-            if (currentWaveIndex < 3) {
-                // 1 秒間隔後進入下一波
-                setTimeout(() => {
-                    startWave(currentWaveIndex + 1);
-                }, 1000);
-            } else {
-                // 4波結束，結算本題分數
-                calculateQuestionScores();
+        function triggerAIBehaviors() {
+            players.filter(p => p.isAI).forEach(ai => {
+                // AI 邏輯：小羅 95% 答對，一般 AI 70% 答對
+                const correctIdx = currentWaveOptions.findIndex(o => o.isCorrect);
+                const isCorrect = Math.random() < (ai.isAndrew ? 0.95 : 0.70);
                 
-                // 1.5 秒後進入下一題或總結算
-                setTimeout(() => {
-                    if (currentQIndex < 3) {
-                        startQuestion(currentQIndex + 1);
-                    } else {
-                        endGame();
-                    }
-                }, 1500);
+                let chosenIdx = correctIdx;
+                if (!isCorrect) {
+                    const wrongIndices = [0, 1, 2, 3].filter(i => i !== correctIdx);
+                    chosenIdx = wrongIndices[Math.floor(Math.random() * wrongIndices.length)];
+                }
+
+                const delay = Math.random() * 3500 + 500; // 0.5s ~ 4s 內回答
+                const tid = setTimeout(() => {
+                    if (isTransitioning || ai.waveAnswered) return;
+                    ai.waveAnswered = true;
+                    ai.choiceIndex = chosenIdx;
+                    ai.timeLeft = waveTimeLeft;
+                    renderPlayersDashboard();
+                    checkAllWaveAnswered();
+                }, delay);
+
+                aiTimeouts.push(tid);
+            });
+        }
+
+        function startWaveTimer() {
+            const startTime = Date.now();
+            const duration = 5000; // 每波 5 秒
+
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, duration - elapsed);
+                waveTimeLeft = Math.ceil(remaining / 1000);
+
+                document.getElementById('timer-text').innerText = `⏱️ ${waveTimeLeft}s`;
+                document.getElementById('timer-bar').style.width = `${(remaining / duration) * 100}%`;
+
+                if (remaining <= 0) {
+                    clearAllTimers();
+                    evaluateWaveAndProceed();
+                }
+            }, 100);
+        }
+
+        function checkAllWaveAnswered() {
+            if (players.every(p => p.waveAnswered) && !isTransitioning) {
+                clearAllTimers();
+                evaluateWaveAndProceed();
             }
         }
 
-        // 計分規則：物資答對1樣 +5分，答對該波秒數剩1秒 +1分
-        function calculateQuestionScores() {
-            const qData = gameQuestions[currentQIndex];
+        /* ==========================================================================
+           7. 計分規則 (答對1樣+5分，剩1秒+1分) 與波次推進
+           ========================================================================== */
+        function evaluateWaveAndProceed() {
+            if (isTransitioning) return;
+            isTransitioning = true;
 
-            players.forEach(p => {
-                p.currentChoices.forEach(c => {
-                    const waveData = qData.waves[c.wave];
-                    if (waveData && c.choice === waveData.correctItem) {
-                        // 答對得5分 + 剩餘秒數加分
-                        p.score += 5 + c.timeLeft;
+            // 揭示正確與錯誤選項
+            currentWaveOptions.forEach((opt, idx) => {
+                const card = document.getElementById(`option-card-${idx}`);
+                if (card) {
+                    if (opt.isCorrect) {
+                        card.classList.add('bg-emerald-100', 'border-emerald-500', 'scale-110', 'z-30');
+                    } else {
+                        card.classList.add('opacity-40', 'grayscale', 'scale-95');
                     }
-                });
+                }
             });
 
-            renderPlayersLeaderboard();
+            // 計算分數與紀錄放置物資
+            players.forEach(p => {
+                if (p.choiceIndex !== null && p.choiceIndex !== undefined) {
+                    const chosenOpt = currentWaveOptions[p.choiceIndex];
+                    if (chosenOpt && chosenOpt.isCorrect) {
+                        // 規則：答對 1 樣 +5 分，剩餘秒數每剩 1 秒 +1 分
+                        let waveScore = 5 + (p.timeLeft || 0);
+                        p.score += waveScore;
+                        p.packedItems.push(chosenOpt.name);
+                    }
+                }
+
+                // 同步至手機端顯示
+                if (p.conn) {
+                    p.conn.send({
+                        type: 'UPDATE_PACKED_ITEMS',
+                        packedItems: p.packedItems
+                    });
+                }
+            });
+
+            renderPlayersDashboard();
+            renderBigBoxPreview();
+
+            // 1 秒間隔後進入下一波或下一箱
+            setTimeout(() => {
+                currentWaveIndex++;
+                if (currentWaveIndex < 4) {
+                    startWaveFlow(currentWaveIndex);
+                } else {
+                    currentBoxIndex++;
+                    startNewBoxFlow(currentBoxIndex);
+                }
+            }, 1000); // 每波間隔 1 秒
         }
 
-        function renderPlayersLeaderboard() {
+        function renderPlayersDashboard() {
             const dashboard = document.getElementById('players-dashboard');
             dashboard.innerHTML = '';
             document.getElementById('game-total-players-badge').innerText = `${players.length} 人`;
 
-            // 依分數排序
             const sorted = [...players].sort((a, b) => b.score - a.score);
 
             sorted.forEach((p, rank) => {
                 const card = document.createElement('div');
-                card.className = "p-3 rounded-2xl border-2 border-amber-200 bg-amber-50 flex items-center justify-between shadow-sm";
-                
-                const lastChoice = p.currentChoices[p.currentChoices.length - 1];
-                const choiceText = (lastChoice && lastChoice.wave === currentWaveIndex) 
-                    ? `<span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">已送出: ${lastChoice.choice}</span>` 
-                    : `<span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-bold">考慮中...</span>`;
+                let borderClass = 'border-amber-200 bg-white/80';
+                let statusBadge = '<span class="text-xs text-amber-700/60 font-bold">思考中</span>';
 
+                if (p.waveAnswered) {
+                    borderClass = 'border-emerald-400 bg-emerald-50/90 shadow-md';
+                    statusBadge = '<span class="text-xs text-emerald-700 font-black">✓ 放進箱子</span>';
+                }
+
+                card.className = `p-2.5 rounded-2xl border-2 ${borderClass} flex items-center justify-between transition-all flex-shrink-0`;
                 card.innerHTML = `
-                    <div class="flex items-center space-x-2 truncate">
-                        <span class="font-black text-amber-800 text-lg">#${rank + 1}</span>
-                        <div class="flex flex-col truncate">
-                            <span class="font-black text-amber-900 text-base truncate">${p.name}</span>
-                            ${choiceText}
-                        </div>
+                    <div class="flex items-center gap-2 truncate max-w-[65%]">
+                        <span class="font-black text-amber-800 text-sm min-w-[24px] text-center">#${rank + 1}</span>
+                        <span class="font-black text-amber-900 text-base truncate">${p.name}</span>
                     </div>
-                    <span class="text-emerald-600 font-black text-xl">${p.score} 分</span>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="text-orange-600 font-black text-lg">${p.score} 分</span>
+                        ${statusBadge}
+                    </div>
                 `;
                 dashboard.appendChild(card);
             });
         }
 
         /* ==========================================================================
-           5. 手機端互動與最終結算
+           8. 最終結算與頒獎
            ========================================================================== */
-        function renderMobileOptions(options, qNum, wNum) {
-            const container = document.getElementById('mobile-options-grid');
-            container.innerHTML = '';
-
-            document.getElementById('mobile-info-badge').classList.remove('hidden');
-            document.getElementById('mobile-q-text').innerText = `第 ${qNum}/4 題`;
-            document.getElementById('mobile-w-text').innerText = `第 ${wNum} 波`;
-            document.getElementById('mobile-status-text').innerText = '5秒倒數！請挑選 1 個物資放入食物箱：';
-
-            options.forEach((item) => {
-                const btn = document.createElement('button');
-                btn.className = "w-full py-4 px-3 bg-white hover:bg-amber-100 active:bg-amber-200 border-2 border-amber-300 rounded-2xl text-amber-900 font-black text-lg shadow transition flex items-center justify-center text-center";
-                btn.innerText = item;
-                btn.onclick = () => {
-                    // 送出答案
-                    if (hostConn && hostConn.open) {
-                        hostConn.send({
-                            type: 'SUBMIT_CHOICE',
-                            playerId: myPlayerId,
-                            choice: item,
-                            timeLeft: waveTimeLeft
-                        });
-                    }
-                    document.getElementById('mobile-status-text').innerText = `✓ 已選擇［${item}］，等待倒數！`;
-                    
-                    // 禁用所有按鈕
-                    const btns = container.querySelectorAll('button');
-                    btns.forEach(b => {
-                        b.disabled = true;
-                        b.classList.add('opacity-50');
-                    });
-                };
-                container.appendChild(btn);
-            });
-        }
-
-        function endGame() {
-            // 顯示大螢幕最終頒獎
+        function showFinalResult() {
+            document.getElementById('view-game').classList.add('hidden');
             document.getElementById('view-result').classList.remove('hidden');
-            
-            const board = document.getElementById('final-leaderboard');
-            board.innerHTML = '';
 
-            const sorted = [...players].sort((a, b) => b.score - a.score);
+            const allSorted = [...players].sort((a, b) => b.score - a.score);
 
-            sorted.forEach((p, idx) => {
-                const row = document.createElement('div');
-                row.className = "p-4 bg-amber-50 rounded-2xl border-2 border-amber-200 flex justify-between items-center text-lg font-black text-amber-900 shadow-sm";
-                row.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <span class="text-2xl">${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '👤'}</span>
-                        <span>第 ${idx + 1} 名 - ${p.name}</span>
-                    </div>
-                    <span class="text-emerald-600 text-2xl">${p.score} 分</span>
-                `;
-                board.appendChild(row);
-
-                // 通知手機端最終結果
+            players.forEach(p => {
                 if (p.conn) {
+                    const rank = allSorted.findIndex(s => s.id === p.id) + 1;
                     p.conn.send({
-                        type: 'GAME_OVER',
-                        rank: idx + 1,
+                        type: 'FINAL_RESULT',
+                        rank: rank,
                         score: p.score
                     });
                 }
             });
 
-            if (typeof confetti === 'function') {
-                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-            }
+            document.getElementById('result-left-count').innerText = `${allSorted.length} 人`;
+            const leftContainer = document.getElementById('result-left-list');
+            leftContainer.innerHTML = '';
+
+            allSorted.forEach((p, idx) => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center p-2.5 bg-white rounded-xl border border-amber-200 text-sm';
+                item.innerHTML = `
+                    <span class="font-bold text-amber-900">#${idx + 1} ${p.name}</span>
+                    <span class="font-black text-orange-600">${p.score} 分</span>
+                `;
+                leftContainer.appendChild(item);
+            });
+
+            const top3Container = document.getElementById('top3-container');
+            top3Container.innerHTML = '';
+
+            const top3 = allSorted.slice(0, 3);
+            const medals = ['🥇 榮譽冠軍志工', '🥈 亞軍志工', '🥉 季軍志工'];
+
+            top3.forEach((p, idx) => {
+                const card = document.createElement('div');
+                if (idx === 0) {
+                    card.className = 'w-full max-w-md p-5 rounded-3xl border-4 border-amber-400 bg-white shadow-xl flex flex-col items-center justify-center';
+                    card.innerHTML = `
+                        <span class="text-sm font-black text-amber-900 bg-amber-200 px-4 py-1 rounded-full mb-1">👑 冠軍愛心包裝王 👑</span>
+                        <div class="text-5xl my-1">🥇</div>
+                        <div class="text-2xl font-black text-amber-900">${p.name}</div>
+                        <div class="text-2xl font-black text-emerald-600 mt-1">${p.score} 分</div>
+                    `;
+                } else {
+                    card.className = 'w-full max-w-md p-3.5 rounded-2xl border-2 border-amber-300 bg-white shadow flex justify-between items-center px-6';
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">${idx === 1 ? '🥈' : '🥉'}</span>
+                            <div class="text-left">
+                                <span class="text-xs font-bold text-amber-700">${medals[idx]}</span>
+                                <div class="text-xl font-black text-amber-900">${p.name}</div>
+                            </div>
+                        </div>
+                        <div class="text-xl font-black text-emerald-600">${p.score} 分</div>
+                    `;
+                }
+                top3Container.appendChild(card);
+            });
+
+            // 慶祝彩帶效果
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
         }
 
-        function showMobileFinalResult(rank, score) {
-            document.getElementById('mobile-game-panel').classList.add('hidden');
-            document.getElementById('mobile-info-badge').classList.add('hidden');
-            
-            const resultBox = document.getElementById('mobile-final-result');
-            resultBox.classList.remove('hidden');
-            resultBox.classList.add('flex');
+        /* ==========================================================================
+           9. 工具函式
+           ========================================================================== */
+        function clearAllTimers() {
+            if (timerInterval) clearInterval(timerInterval);
+            aiTimeouts.forEach(t => clearTimeout(t));
+            aiTimeouts = [];
+        }
 
-            document.getElementById('mobile-result-score').innerText = score;
-            document.getElementById('mobile-result-rank').innerText = `榮獲名次：第 ${rank} 名`;
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('opacity-0', '-translate-y-12');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-12');
+            }, 2500);
         }
     </script>
 </body>
