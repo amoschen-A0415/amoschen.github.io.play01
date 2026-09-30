@@ -69,6 +69,16 @@
         .box-active {
             animation: box-bounce 2.5s ease-in-out infinite;
         }
+
+        /* 答對 +1 動畫 */
+        @keyframes correct-pop {
+            0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+            50% { transform: scale(1.15) translateY(-5px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .animate-correct {
+            animation: correct-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col justify-between p-3 relative text-slate-800">
@@ -262,23 +272,31 @@
                         <span id="timer-text" class="text-4xl font-black text-orange-600 animate-pulse">⏱ 5s</span>
                     </div>
 
-                    <!-- 箱子任務指示與說明 (顯著拉開與下方的距離 mb-12) -->
-                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center mb-12 shadow-md">
+                    <!-- 箱子任務指示與說明 (保留與食物箱的距離) -->
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center mb-16 shadow-md">
                         <p id="box-instruction" class="text-lg md:text-xl font-black text-amber-900">
                             任務：請從手機點選合格物資放進箱子！
                         </p>
                     </div>
                 </div>
 
-                <!-- 中央區域：超大食物箱展示區（無黃色底與外圍答案圖示，保留乾淨舒服佈局） -->
-                <div class="relative flex-grow flex flex-col items-center justify-center w-full my-auto p-4 overflow-hidden">
-                    <div id="main-big-box" class="w-[30rem] md:w-[38rem] h-[30rem] md:h-[38rem] max-h-[55vh] max-w-[90%] bg-gradient-to-br from-amber-100 via-amber-200 to-yellow-300 rounded-[3.5rem] border-[12px] border-amber-500/90 shadow-[0_25px_60px_-15px_rgba(217,119,6,0.3)] flex flex-col items-center justify-center relative box-active z-10 p-8">
-                        <div class="text-[7rem] md:text-[9rem] leading-none mb-3 drop-shadow-md">📦</div>
-                        <span id="big-box-name" class="text-3xl md:text-5xl font-black text-amber-950 text-center tracking-wider mb-2">
-                            膳糧食物箱
-                        </span>
-                        <div id="big-box-items-preview" class="flex flex-wrap gap-2.5 justify-center mt-4 max-w-[95%] max-h-[140px] overflow-y-auto">
-                            <!-- 已放入箱子物資動態縮圖 -->
+                <!-- 中央區域：超大食物箱展示區 + 右側「答對+1」動態提示區 -->
+                <div class="relative flex-grow flex items-center justify-center w-full my-auto p-4 overflow-hidden">
+                    <div class="relative flex items-center justify-center">
+                        <!-- 食物箱 -->
+                        <div id="main-big-box" class="w-[28rem] md:w-[34rem] h-[28rem] md:h-[34rem] max-h-[50vh] max-w-[85%] bg-gradient-to-br from-amber-100 via-amber-200 to-yellow-300 rounded-[3.5rem] border-[12px] border-amber-500/90 shadow-[0_25px_60px_-15px_rgba(217,119,6,0.3)] flex flex-col items-center justify-center relative box-active z-10 p-8">
+                            <div class="text-[6.5rem] md:text-[8.5rem] leading-none mb-3 drop-shadow-md">📦</div>
+                            <span id="big-box-name" class="text-3xl md:text-5xl font-black text-amber-950 text-center tracking-wider mb-2">
+                                膳糧食物箱
+                            </span>
+                            <div id="big-box-items-preview" class="flex flex-wrap gap-2.5 justify-center mt-4 max-w-[95%] max-h-[140px] overflow-y-auto">
+                                <!-- 已放入箱子物資動態縮圖 -->
+                            </div>
+                        </div>
+
+                        <!-- 右側：答對+1 提示顯示箱 (答對時動態增加顯示) -->
+                        <div id="correct-badge-container" class="absolute -right-24 md:-right-36 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none z-20">
+                            <!-- JS 動態插入答對+1 徽章 -->
                         </div>
                     </div>
                 </div>
@@ -337,16 +355,17 @@
                 const gain = audioCtx.createGain();
 
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(isHigh ? 880 : 440, audioCtx.currentTime); // 880Hz (A5) 或 440Hz (A4)
+                // 最後一聲極高音 (1046.5Hz C6)，一般倒數滴聲為 (523.25Hz C5)
+                osc.frequency.setValueAtTime(isHigh ? 1046.5 : 523.25, audioCtx.currentTime); 
                 
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
 
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
 
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.15);
+                osc.stop(audioCtx.currentTime + 0.12);
             } catch (e) {
                 console.log('Audio Context Error:', e);
             }
@@ -414,7 +433,7 @@
             '尿布': '👶', '專案物資': '🎁', 
             '養生珍菇雞湯': '🍲', '花生豬腳': '🍖', '佛跳牆': '🍲', '紅燒羊肉爐': '🍲', '筍乾焢肉': '🥩', '櫻花蝦米糕': '🍚',
             
-            '辣味豆干': '🌶️', '辣味罐頭': '🌶️️', '玻璃罐頭': '🫙', '辣味調理包': '🌶️',
+            '辣味豆干': '🌶️', '辣味罐頭': '🌶', '玻璃罐頭': '🫙', '辣味調理包': '🌶️',
             '麻辣鴨血': '🍲', '咖啡': '☕', '洋芋片': '🥔', '泡麵': '🍜', '碳酸飲料': '🥤',
             '生鮮蔬菜': '🥬', '醬瓜罐頭': '🫙'
         };
@@ -445,7 +464,7 @@
         let aiTimeouts = [];
         let isTransitioning = false;
         let waveTimeLeft = 5;
-        let lastBeepSecond = -1;
+        let lastPlayedTickIndex = -1; // 用於控制第 3 秒開始每半秒一次的滴聲索引
 
         let mobileHasAnswered = false;
 
@@ -493,6 +512,13 @@
                                 target.waveAnswered = true;
                                 target.choiceIndex = data.choiceIndex;
                                 target.timeLeft = waveTimeLeft;
+
+                                // 檢查是否答對，若答對就在大螢幕食物箱旁新增「答對+1」
+                                const chosenOpt = target.currentWaveOptions[data.choiceIndex];
+                                if (chosenOpt && chosenOpt.isCorrect) {
+                                    triggerCorrectBadgeAnimation();
+                                }
+
                                 renderPlayersDashboard();
                                 checkAllWaveAnswered();
                             }
@@ -505,6 +531,17 @@
                     });
                 });
             });
+        }
+
+        function triggerCorrectBadgeAnimation() {
+            const container = document.getElementById('correct-badge-container');
+            const badge = document.createElement('div');
+            badge.className = 'bg-emerald-500 text-white font-black text-xl md:text-2xl px-4 py-2 rounded-2xl shadow-xl border-2 border-white flex items-center gap-1 my-1 animate-correct';
+            badge.innerHTML = `<span>✨ 答對 +1</span>`;
+            
+            container.appendChild(badge);
+
+            // 保持顯示，波次結束清空
         }
 
         function initMobileController(hostId) {
@@ -802,6 +839,9 @@
             clearAllTimers();
             isTransitioning = true;
 
+            // 清空「答對+1」提示容器
+            document.getElementById('correct-badge-container').innerHTML = '';
+
             document.getElementById('splash-box-title').innerText = `${currentBoxData.icon} 箱數 ${currentBoxIndex + 1}/${totalBoxCount}：${currentBoxData.name}`;
             document.getElementById('splash-wave-text').innerText = `第 ${waveIdx + 1} 波物資選擇`;
             document.getElementById('view-question-splash').classList.remove('hidden');
@@ -815,12 +855,11 @@
         function loadWaveContent(waveIdx) {
             isTransitioning = false;
             waveTimeLeft = 5;
-            lastBeepSecond = -1;
+            lastPlayedTickIndex = -1;
 
             // 1. 確保當前食物箱的正確答案不重複出現
             let availableAllowed = currentBoxData.allowed.filter(item => !usedAllowedInCurrentBox.includes(item));
             if (availableAllowed.length === 0) {
-                // 若當前箱子允許項目不夠（極端情況），則重置已使用池
                 usedAllowedInCurrentBox = [];
                 availableAllowed = [...currentBoxData.allowed];
             }
@@ -901,6 +940,11 @@
                     ai.waveAnswered = true;
                     ai.choiceIndex = chosenIdx;
                     ai.timeLeft = waveTimeLeft;
+
+                    if (isCorrect) {
+                        triggerCorrectBadgeAnimation();
+                    }
+
                     renderPlayersDashboard();
                     checkAllWaveAnswered();
                 }, delay);
@@ -921,17 +965,22 @@
                 document.getElementById('timer-text').innerText = `⏱️ ${waveTimeLeft}s`;
                 document.getElementById('timer-bar').style.width = `${(remaining / duration) * 100}%`;
 
-                // 倒數滴滴滴音效 (最後 3 秒播放)
-                if (waveTimeLeft <= 3 && waveTimeLeft > 0 && waveTimeLeft !== lastBeepSecond) {
-                    lastBeepSecond = waveTimeLeft;
-                    playTickSound(waveTimeLeft === 1); // 最後 1 秒高音
+                // 從第 3 秒開始 (即倒數第 2.5 秒 ~ 0 秒區域)，每半秒 (500ms) 滴一聲，共 6 聲
+                if (remaining <= 3000 && remaining > 0) {
+                    // 計算當前半秒索引 (0 到 5)
+                    const halfSecondIdx = Math.floor((3000 - remaining) / 500);
+                    if (halfSecondIdx > lastPlayedTickIndex && halfSecondIdx < 6) {
+                        lastPlayedTickIndex = halfSecondIdx;
+                        const isFinalTick = (halfSecondIdx === 5); // 第 6 聲 (約剩餘 0.5s 時) 播放高一階音效
+                        playTickSound(isFinalTick);
+                    }
                 }
 
                 if (remaining <= 0) {
                     clearAllTimers();
                     evaluateWaveAndProceed();
                 }
-            }, 100);
+            }, 50);
         }
 
         function checkAllWaveAnswered() {
@@ -973,6 +1022,7 @@
             }, 1000);
         }
 
+        // 修改：排行榜不再顯示個別選項或選擇結果，隱藏答案
         function renderPlayersDashboard() {
             const dashboard = document.getElementById('players-dashboard');
             dashboard.innerHTML = '';
@@ -983,22 +1033,20 @@
             sorted.forEach((p, rank) => {
                 const card = document.createElement('div');
                 let borderClass = 'border-amber-200 bg-white/80';
-                let statusBadge = '<span class="text-xs text-amber-700/60 font-bold">思考中</span>';
-
+                
+                // 不顯示特定「已選擇」或答案字樣，僅改變邊框顏色代表已作答
                 if (p.waveAnswered) {
-                    borderClass = 'border-emerald-400 bg-emerald-50/90 shadow-md';
-                    statusBadge = '<span class="text-xs text-emerald-700 font-black">✓ 已選擇</span>';
+                    borderClass = 'border-amber-400 bg-amber-100/60 shadow-sm';
                 }
 
                 card.className = `p-2.5 rounded-2xl border-2 ${borderClass} flex items-center justify-between transition-all flex-shrink-0`;
                 card.innerHTML = `
-                    <div class="flex items-center gap-2 truncate max-w-[65%]">
+                    <div class="flex items-center gap-2 truncate max-w-[70%]">
                         <span class="font-black text-amber-800 text-sm min-w-[24px] text-center">#${rank + 1}</span>
                         <span class="font-black text-amber-900 text-base truncate">${p.displayName || p.name}</span>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <span class="text-orange-600 font-black text-lg">${p.score} 分</span>
-                        ${statusBadge}
                     </div>
                 `;
                 dashboard.appendChild(card);
