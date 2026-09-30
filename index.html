@@ -221,7 +221,7 @@
             <h1 id="splash-wave-text" class="text-6xl md:text-8xl font-black text-amber-900 drop-shadow-md">
                 第 1 波物資選擇
             </h1>
-            <p class="text-xl text-amber-700 font-bold mt-4 animate-bounce">⏱️ 每波倒數 5 秒！準備好手速！</p>
+            <p class="text-xl text-amber-700 font-bold mt-4 animate-bounce">⏱️️ 每波倒數 5 秒！準備好手速！</p>
         </div>
 
         <!-- 大螢幕 - 遊戲主畫面 -->
@@ -262,25 +262,35 @@
                         <span id="timer-text" class="text-3xl font-black text-orange-600 animate-pulse">⏱ 5s</span>
                     </div>
 
-                    <!-- 箱子任務指示與說明 (增加 mb-8 下邊距以跟下方食物箱保留距離) -->
-                    <div class="bg-amber-50/80 rounded-2xl p-3 border border-amber-200 text-center mb-8 shadow-sm">
+                    <!-- 箱子任務指示與說明 -->
+                    <div class="bg-amber-50/80 rounded-2xl p-3 border border-amber-200 text-center mb-4 shadow-sm">
                         <p id="box-instruction" class="text-base md:text-lg font-black text-amber-900">
                             任務：請從手機點選合格物資放進箱子！
                         </p>
                     </div>
                 </div>
 
-                <!-- 中央區域：中央食物箱展示區（尺寸放大一倍） -->
-                <div class="relative flex-grow flex flex-col items-center justify-center w-full my-auto p-2 overflow-hidden">
-                    <div id="main-big-box" class="w-[64rem] h-[64rem] max-h-[75vh] max-w-[95%] bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-[4rem] border-[16px] border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-8">
-                        <div class="text-[10rem] md:text-[12rem] mb-4">📦</div>
-                        <span id="big-box-name" class="text-5xl md:text-7xl font-black text-amber-900 text-center tracking-wider mb-2">
+                <!-- 中央區域：食物箱 + 左右兩側答案區域 -->
+                <div class="relative flex-grow flex items-center justify-between w-full my-auto p-4 overflow-hidden gap-4">
+                    
+                    <!-- 左側答案面板 -->
+                    <div id="left-answers-container" class="w-1/4 flex flex-col gap-2.5 items-end justify-center z-20 h-full overflow-y-auto pr-2">
+                        <!-- 動態插入左側答對物資卡片 -->
+                    </div>
+
+                    <!-- 中央：適中比例且具備良好留白的食物箱 -->
+                    <div id="main-big-box" class="max-w-xl md:max-w-2xl w-full aspect-square bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-3xl border-8 border-amber-400 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-6 md:p-8 flex-shrink-0">
+                        <div class="text-7xl md:text-8xl mb-3">📦</div>
+                        <span id="big-box-name" class="text-3xl md:text-5xl font-black text-amber-900 text-center tracking-wider mb-2">
                             長青食物箱
                         </span>
-                        <div id="big-box-items-preview" class="flex flex-wrap gap-3 justify-center mt-6 max-w-[95%]">
-                            <!-- 已放入箱子物資動態縮圖 -->
-                        </div>
                     </div>
+
+                    <!-- 右側答案面板 -->
+                    <div id="right-answers-container" class="w-1/4 flex flex-col gap-2.5 items-start justify-center z-20 h-full overflow-y-auto pl-2">
+                        <!-- 動態插入右側答對物資卡片 -->
+                    </div>
+
                 </div>
 
             </div>
@@ -820,23 +830,45 @@
             document.getElementById('timer-text').innerText = `⏱️ ${waveTimeLeft}s`;
             document.getElementById('timer-bar').style.width = '100%';
 
-            renderBigBoxPreview();
+            renderSideAnswers();
             renderPlayersDashboard();
 
             startWaveTimer();
             triggerAIBehaviors();
         }
 
-        function renderBigBoxPreview() {
-            const container = document.getElementById('big-box-items-preview');
-            container.innerHTML = '';
-            
-            const sampleItems = players.length > 0 ? players[0].packedItems : [];
-            sampleItems.forEach(item => {
-                const tag = document.createElement('span');
-                tag.className = 'bg-white/90 border-2 border-amber-400 text-amber-900 text-base md:text-xl font-black px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pop';
-                tag.innerHTML = `<span>${getItemIcon(item)}</span> <span>${item}</span>`;
-                container.appendChild(tag);
+        function renderSideAnswers() {
+            const leftContainer = document.getElementById('left-answers-container');
+            const rightContainer = document.getElementById('right-answers-container');
+            leftContainer.innerHTML = '';
+            rightContainer.innerHTML = '';
+
+            let correctAnswers = [];
+            players.forEach(p => {
+                if (p.packedItems && p.packedItems.length > 0) {
+                    const latestItem = p.packedItems[p.packedItems.length - 1];
+                    correctAnswers.push({
+                        playerName: p.displayName || p.name,
+                        item: latestItem,
+                        icon: getItemIcon(latestItem)
+                    });
+                }
+            });
+
+            correctAnswers.forEach((ans, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'bg-white/95 border-2 border-amber-400 text-amber-900 text-sm md:text-base font-black px-3 py-1.5 rounded-2xl flex items-center gap-2 shadow-md animate-pop max-w-full truncate';
+                tag.innerHTML = `
+                    <span class="text-amber-700 text-xs font-bold truncate max-w-[80px]">${ans.playerName}:</span>
+                    <span class="text-lg">${ans.icon}</span>
+                    <span class="truncate">${ans.item}</span>
+                `;
+
+                if (index % 2 === 0) {
+                    leftContainer.appendChild(tag);
+                } else {
+                    rightContainer.appendChild(tag);
+                }
             });
         }
 
@@ -911,7 +943,7 @@
             });
 
             renderPlayersDashboard();
-            renderBigBoxPreview();
+            renderSideAnswers();
 
             setTimeout(() => {
                 currentWaveIndex++;
