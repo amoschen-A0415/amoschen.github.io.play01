@@ -70,12 +70,12 @@
             animation: box-bounce 2.5s ease-in-out infinite;
         }
 
-        /* 答對 +1 跳躍動畫 (向上跳躍並淡出) */
+        /* 答對 +1 跳躍動畫 (限制於範圍內向上跳躍並淡出) */
         @keyframes correct-jump {
-            0% { transform: translateY(20px) scale(0.7); opacity: 0; }
-            40% { transform: translateY(-30px) scale(1.2); opacity: 1; }
-            70% { transform: translateY(-45px) scale(1.1); opacity: 1; }
-            100% { transform: translateY(-60px) scale(0.9); opacity: 0; }
+            0% { transform: translateY(10px) scale(0.7); opacity: 0; }
+            40% { transform: translateY(-15px) scale(1.1); opacity: 1; }
+            70% { transform: translateY(-25px) scale(1); opacity: 1; }
+            100% { transform: translateY(-35px) scale(0.9); opacity: 0; }
         }
         .animate-jump-float {
             animation: correct-jump 0.9s ease-out forwards;
@@ -281,31 +281,31 @@
                     </div>
                 </div>
 
-                <!-- 中央區域：食物箱展示區（尺寸放大1倍：text-[15rem] md:text-[19rem]，高寬適應放大）與右側跳躍動畫提示區 -->
-                <div class="relative flex-grow flex items-center justify-center w-full my-auto p-4 overflow-hidden">
-                    <div class="relative flex items-center justify-center">
+                <!-- 中央區域：食物箱展示區（邊框縮減為20%，整體大小縮減為60%：尺寸改為 w-[21.6rem] md:w-[28.8rem]，圖示改為 text-[9rem] md:text-[11.4rem]） -->
+                <div class="relative flex-grow flex items-center justify-center w-full my-auto p-1 overflow-hidden">
+                    <div class="relative flex items-center justify-center max-w-full">
                         
-                        <!-- 食物箱 (圖示與文字尺寸放大1倍) -->
-                        <div id="main-big-box" class="w-[36rem] md:w-[48rem] max-h-[60vh] max-w-[95%] flex flex-col items-center justify-center relative box-active z-10 p-4">
-                            <div class="text-[15rem] md:text-[19rem] leading-none mb-4 drop-shadow-2xl">📦</div>
+                        <!-- 食物箱 (整體尺寸與字體縮減為60%，p-4 邊框與內距縮減 20% 改為 p-1) -->
+                        <div id="main-big-box" class="w-[21.6rem] md:w-[28.8rem] max-h-[36vh] max-w-[90vw] flex flex-col items-center justify-center relative box-active z-10 p-1">
+                            <div class="text-[9rem] md:text-[11.4rem] leading-none mb-2 drop-shadow-2xl">📦</div>
                             
                             <!-- 文字完整顯示 + 若有年齡層則顯示在下一行 -->
                             <div class="flex flex-col items-center justify-center text-center">
-                                <span id="big-box-title" class="text-4xl md:text-6xl font-black text-amber-950 tracking-wider whitespace-nowrap">
+                                <span id="big-box-title" class="text-2xl md:text-4xl font-black text-amber-950 tracking-wider whitespace-nowrap">
                                     膳糧食物箱
                                 </span>
-                                <span id="big-box-age" class="text-2xl md:text-3xl font-bold text-amber-800 mt-2 whitespace-nowrap">
+                                <span id="big-box-age" class="text-lg md:text-2xl font-bold text-amber-800 mt-1 whitespace-nowrap">
                                     (3-15歲)
                                 </span>
                             </div>
 
-                            <div id="big-box-items-preview" class="flex flex-wrap gap-2.5 justify-center mt-4 max-w-[95%] max-h-[140px] overflow-y-auto">
+                            <div id="big-box-items-preview" class="flex flex-wrap gap-1.5 justify-center mt-2 max-w-[95%] max-h-[85px] overflow-y-auto">
                                 <!-- 已放入箱子物資動態縮圖 -->
                             </div>
                         </div>
 
-                        <!-- 右側：僅顯示「答對+1」跳躍效果顯示區 -->
-                        <div id="correct-badge-container" class="absolute -right-16 md:-right-28 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none z-30">
+                        <!-- 右側：僅顯示「答對+1」跳躍效果顯示區（防止超出螢幕顯示，定位改為右側緊貼且不越界） -->
+                        <div id="correct-badge-container" class="absolute right-0 md:right-2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none z-30 max-w-xs">
                             <!-- JS 動態插入跳躍動畫的「答對+1」 -->
                         </div>
                     </div>
@@ -622,7 +622,7 @@
             // 大螢幕出現跳躍效果的「答對+1」
             const container = document.getElementById('correct-badge-container');
             const badge = document.createElement('div');
-            badge.className = 'bg-gradient-to-r from-emerald-400 to-green-500 text-white font-black text-3xl md:text-4xl px-6 py-3 rounded-full shadow-2xl border-4 border-white flex items-center justify-center animate-jump-float whitespace-nowrap drop-shadow-2xl';
+            badge.className = 'bg-gradient-to-r from-emerald-400 to-green-500 text-white font-black text-2xl md:text-3xl px-4 py-2 rounded-full shadow-2xl border-2 border-white flex items-center justify-center animate-jump-float whitespace-nowrap drop-shadow-2xl';
             badge.innerHTML = `<span>答對 +1</span>`;
             
             container.appendChild(badge);
@@ -1011,7 +1011,7 @@
             const sampleItems = players.length > 0 ? players[0].packedItems : [];
             sampleItems.forEach(item => {
                 const tag = document.createElement('span');
-                tag.className = 'bg-white/90 border-2 border-amber-400 text-amber-900 text-sm md:text-base font-black px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pop whitespace-nowrap';
+                tag.className = 'bg-white/90 border-2 border-amber-400 text-amber-900 text-xs md:text-sm font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm animate-pop whitespace-nowrap';
                 tag.innerHTML = `<span>${getItemIcon(item)}</span> <span>${item}</span>`;
                 container.appendChild(tag);
             });
