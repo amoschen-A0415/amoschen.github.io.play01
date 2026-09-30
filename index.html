@@ -70,14 +70,15 @@
             animation: box-bounce 2.5s ease-in-out infinite;
         }
 
-        /* 答對 +1 動畫 */
-        @keyframes correct-pop {
-            0% { transform: scale(0.8) translateY(10px); opacity: 0; }
-            50% { transform: scale(1.15) translateY(-5px); opacity: 1; }
-            100% { transform: scale(1) translateY(0); opacity: 1; }
+        /* 答對 +1 跳躍動畫 (向上跳躍並淡出) */
+        @keyframes correct-jump {
+            0% { transform: translateY(20px) scale(0.7); opacity: 0; }
+            40% { transform: translateY(-30px) scale(1.2); opacity: 1; }
+            70% { transform: translateY(-45px) scale(1.1); opacity: 1; }
+            100% { transform: translateY(-60px) scale(0.9); opacity: 0; }
         }
-        .animate-correct {
-            animation: correct-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        .animate-jump-float {
+            animation: correct-jump 0.9s ease-out forwards;
         }
     </style>
 </head>
@@ -272,31 +273,40 @@
                         <span id="timer-text" class="text-4xl font-black text-orange-600 animate-pulse whitespace-nowrap">⏱ 5s</span>
                     </div>
 
-                    <!-- 箱子任務指示與說明 (保留與食物箱的距離，設定為單行不換行) -->
-                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center mb-6 shadow-md overflow-hidden">
+                    <!-- 箱子任務指示與說明 -->
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center shadow-md overflow-hidden mb-12">
                         <p id="box-instruction" class="text-lg md:text-xl font-black text-amber-900 whitespace-nowrap overflow-hidden text-ellipsis">
                             任務：請從手機點選合格物資放進箱子！
                         </p>
                     </div>
                 </div>
 
-                <!-- 中央區域：超大食物箱展示區 + 右側「答對+1」動態提示區 -->
+                <!-- 中央區域：食物箱展示區（無黃框底色、距離拉開）與右側跳躍動畫提示區 -->
                 <div class="relative flex-grow flex items-center justify-center w-full my-auto p-4 overflow-hidden">
                     <div class="relative flex items-center justify-center">
-                        <!-- 食物箱 -->
-                        <div id="main-big-box" class="w-[28rem] md:w-[34rem] h-[28rem] md:h-[34rem] max-h-[50vh] max-w-[85%] bg-gradient-to-br from-amber-100 via-amber-200 to-yellow-300 rounded-[3.5rem] border-[12px] border-amber-500/90 shadow-[0_25px_60px_-15px_rgba(217,119,6,0.3)] flex flex-col items-center justify-center relative box-active z-10 p-8">
-                            <div class="text-[6.5rem] md:text-[8.5rem] leading-none mb-3 drop-shadow-md">📦</div>
-                            <span id="big-box-name" class="text-3xl md:text-5xl font-black text-amber-950 text-center tracking-wider mb-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
-                                膳糧食物箱
-                            </span>
+                        
+                        <!-- 食物箱 (拿掉黃框底色，維持簡潔視覺) -->
+                        <div id="main-big-box" class="w-[28rem] md:w-[34rem] h-[28rem] md:h-[34rem] max-h-[50vh] max-w-[85%] flex flex-col items-center justify-center relative box-active z-10 p-8">
+                            <div class="text-[7.5rem] md:text-[9.5rem] leading-none mb-4 drop-shadow-lg">📦</div>
+                            
+                            <!-- 文字完整顯示 + 若有年齡層則顯示在下一行 -->
+                            <div class="flex flex-col items-center justify-center text-center">
+                                <span id="big-box-title" class="text-3xl md:text-5xl font-black text-amber-950 tracking-wider whitespace-nowrap">
+                                    膳糧食物箱
+                                </span>
+                                <span id="big-box-age" class="text-xl md:text-2xl font-bold text-amber-800 mt-2 whitespace-nowrap">
+                                    (3-15歲)
+                                </span>
+                            </div>
+
                             <div id="big-box-items-preview" class="flex flex-wrap gap-2.5 justify-center mt-4 max-w-[95%] max-h-[140px] overflow-y-auto">
                                 <!-- 已放入箱子物資動態縮圖 -->
                             </div>
                         </div>
 
-                        <!-- 右側：答對+1 提示顯示箱 (答對時動態增加顯示) -->
-                        <div id="correct-badge-container" class="absolute -right-24 md:-right-36 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none z-20">
-                            <!-- JS 動態插入答對+1 徽章 -->
+                        <!-- 右側：僅顯示「答對+1」跳躍效果顯示區 (回答後不顯示答案，僅跳躍與音效) -->
+                        <div id="correct-badge-container" class="absolute -right-16 md:-right-28 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none z-30">
+                            <!-- JS 動態插入跳躍動畫的「答對+1」 -->
                         </div>
                     </div>
                 </div>
@@ -335,92 +345,141 @@
     </main>
 
     <footer id="main-footer" class="w-full py-1.5 px-4 rounded-xl sun-card text-center text-amber-800 text-xs flex-shrink-0 font-bold mt-2 whitespace-nowrap">
-        安得烈食物銀行 關懷弱勢・愛合格不浪費 | 志工服務体验互動遊戲
+        安得烈食物銀行 關懷弱勢・愛合格不浪費 | 志工服務體驗互動遊戲
     </footer>
 
     <script>
         /* ==========================================================================
-           1. 音效控制 (Web Audio API - 倒計時急促警示音效)
+           1. 音效控制 (Web Audio API - 倒計時嗶嗶聲 + 答對歡快跳躍音效)
            ========================================================================== */
         let audioCtx = null;
 
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        // 倒計時音效
         function playTickSound(isHigh = false) {
             try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
 
-                // 倒計時音效設定：鋸齒波 (sawtooth) 或三角波 (triangle) 更有急促緊迫感
                 osc.type = isHigh ? 'sawtooth' : 'triangle';
-                
-                // 頻率：普通倒數 660Hz (E5)，最後一聲高音 1320Hz (E6)
                 const freq = isHigh ? 1320 : 660;
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                // 滑音效果，模擬經典倒計時嗶嗶聲
-                osc.frequency.exponentialRampToValueAtTime(freq * 0.8, audioCtx.currentTime + 0.08);
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(freq * 0.8, ctx.currentTime + 0.08);
 
-                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
+                gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
 
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(ctx.destination);
 
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.09);
+                osc.stop(ctx.currentTime + 0.09);
             } catch (e) {
-                console.log('Audio Context Error:', e);
+                console.log('Audio Error:', e);
+            }
+        }
+
+        // 答對「跳躍音效」(清脆雙音階跳躍效果)
+        function playCorrectJumpSound() {
+            try {
+                const ctx = getAudioContext();
+                
+                // 第一音：高音 G5
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(783.99, ctx.currentTime); 
+                gain1.gain.setValueAtTime(0.5, ctx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(ctx.currentTime);
+                osc1.stop(ctx.currentTime + 0.12);
+
+                // 第二音：跳躍至超高音 C6
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.08); 
+                gain2.gain.setValueAtTime(0.6, ctx.currentTime + 0.08);
+                gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(ctx.currentTime + 0.08);
+                osc2.stop(ctx.currentTime + 0.28);
+            } catch (e) {
+                console.log('Audio Error:', e);
             }
         }
 
         /* ==========================================================================
-           2. 物資庫與 7 種食物箱資料結構
+           2. 物資庫與 7 種食物箱資料結構 (帶有年齡層拆分)
            ========================================================================== */
         
         const FOOD_BOXES = [
             {
                 id: 'baby',
-                name: '1.嬰兒物資箱(0-3歲)',
+                title: '嬰兒物資箱',
+                age: '(0-3歲)',
+                name: '嬰兒物資箱(0-3歲)',
                 allowed: ['嬰兒奶粉', '嬰幼兒尿布', '嬰幼兒濕紙巾', '衛生紙'],
                 icon: '🍼'
             },
             {
                 id: 'kid',
-                name: '2.膳糧食物箱(3-15歲)',
+                title: '膳糧食物箱',
+                age: '(3-15歲)',
+                name: '膳糧食物箱(3-15歲)',
                 allowed: ['保久乳', '肉鬆', '沖泡麥片', '肉類罐頭', '玉米罐頭', '麵條', '肉類調理包', '白米'],
                 icon: '🥣'
             },
             {
                 id: 'veg',
-                name: '3.素食食物箱',
+                title: '素食食物箱',
+                age: '',
+                name: '素食食物箱',
                 allowed: ['素肉鬆', '沖泡麥片', '玉米罐頭', '麵條', '素食調理包', '白米'],
                 icon: '🥗'
             },
             {
                 id: 'elder',
-                name: '4.長青食物箱(65-80歲)',
+                title: '長青食物箱',
+                age: '(65-80歲)',
+                name: '長青食物箱(65-80歲)',
                 allowed: ['白米', '麵條', '滴雞精', '軟質粥品(少油低鈉)', '沖泡麥片', '易咬餅乾'],
                 icon: '👵'
             },
             {
                 id: 'pine',
-                name: '5.松柏食物箱(80歲以上)',
+                title: '松柏食物箱',
+                age: '(80歲以上)',
+                name: '松柏食物箱(80歲以上)',
                 allowed: ['滴雞精', '軟質粥品(少油低鈉)', '沖泡麥片', '易咬餅乾'],
                 icon: '🧓'
             },
             {
                 id: 'project',
-                name: '6.專案食物箱',
+                title: '專案食物箱',
+                age: '',
+                name: '專案食物箱',
                 allowed: ['醫囑營養品', '尿布', '衛生紙', '專案物資'],
                 icon: '🏥'
             },
             {
                 id: 'cny',
-                name: '7.年菜食物箱',
+                title: '年菜食物箱',
+                age: '',
+                name: '年菜食物箱',
                 allowed: ['養生珍菇雞湯', '花生豬腳', '佛跳牆', '紅燒羊肉爐', '筍乾焢肉', '櫻花蝦米糕'],
                 icon: '🧧'
             }
@@ -464,13 +523,13 @@
         let currentBoxIndex = 0;
         let currentWaveIndex = 0;
         let currentBoxData = null;
-        let usedAllowedInCurrentBox = []; // 紀錄當前食物箱已出現過的合格物資，避免重複
+        let usedAllowedInCurrentBox = [];
 
         let timerInterval = null;
         let aiTimeouts = [];
         let isTransitioning = false;
         let waveTimeLeft = 5;
-        let lastPlayedTickIndex = -1; // 用於控制倒數計時音效的點
+        let lastPlayedTickIndex = -1;
 
         let mobileHasAnswered = false;
 
@@ -519,10 +578,10 @@
                                 target.choiceIndex = data.choiceIndex;
                                 target.timeLeft = waveTimeLeft;
 
-                                // 檢查是否答對，若答對就在大螢幕食物箱旁新增「答對+1」
+                                // 若答對，僅在大螢幕觸發跳躍的「答對+1」動畫與跳躍音效（不顯示答案文字）
                                 const chosenOpt = target.currentWaveOptions[data.choiceIndex];
                                 if (chosenOpt && chosenOpt.isCorrect) {
-                                    triggerCorrectBadgeAnimation();
+                                    triggerJumpCorrectBadge();
                                 }
 
                                 renderPlayersDashboard();
@@ -539,13 +598,25 @@
             });
         }
 
-        function triggerCorrectBadgeAnimation() {
+        // 觸發「答對+1」跳躍顯示效果與音效
+        function triggerJumpCorrectBadge() {
+            // 播放答對跳躍音效
+            playCorrectJumpSound();
+
+            // 大螢幕出現跳躍效果的「答對+1」
             const container = document.getElementById('correct-badge-container');
             const badge = document.createElement('div');
-            badge.className = 'bg-emerald-500 text-white font-black text-xl md:text-2xl px-4 py-2 rounded-2xl shadow-xl border-2 border-white flex items-center gap-1 my-1 animate-correct whitespace-nowrap';
-            badge.innerHTML = `<span>✨ 答對 +1</span>`;
+            badge.className = 'bg-gradient-to-r from-emerald-400 to-green-500 text-white font-black text-3xl md:text-4xl px-6 py-3 rounded-full shadow-2xl border-4 border-white flex items-center justify-center animate-jump-float whitespace-nowrap drop-shadow-2xl';
+            badge.innerHTML = `<span>答對 +1</span>`;
             
             container.appendChild(badge);
+
+            // 動態移除元素
+            setTimeout(() => {
+                if (badge.parentNode) {
+                    badge.parentNode.removeChild(badge);
+                }
+            }, 900);
         }
 
         function initMobileController(hostId) {
@@ -826,14 +897,23 @@
                 return;
             }
 
-            // 遊戲開始與每箱隨機選擇 7 種食物箱之一
             currentBoxData = FOOD_BOXES[Math.floor(Math.random() * FOOD_BOXES.length)];
             usedAllowedInCurrentBox = [];
             currentWaveIndex = 0;
 
             players.forEach(p => p.packedItems = []);
 
-            document.getElementById('big-box-name').innerText = currentBoxData.name.replace(/^\d+\./, '');
+            // 完整顯示文字，若有年齡層則顯示在下一行
+            document.getElementById('big-box-title').innerText = currentBoxData.title;
+            const ageEl = document.getElementById('big-box-age');
+            if (currentBoxData.age) {
+                ageEl.innerText = currentBoxData.age;
+                ageEl.classList.remove('hidden');
+            } else {
+                ageEl.innerText = '';
+                ageEl.classList.add('hidden');
+            }
+
             document.getElementById('box-type-badge').innerText = `${currentBoxData.icon} ${currentBoxData.name}`;
 
             startWaveFlow(currentWaveIndex);
@@ -843,7 +923,6 @@
             clearAllTimers();
             isTransitioning = true;
 
-            // 清空「答對+1」提示容器
             document.getElementById('correct-badge-container').innerHTML = '';
 
             document.getElementById('splash-box-title').innerText = `${currentBoxData.icon} 箱數 ${currentBoxIndex + 1}/${totalBoxCount}：${currentBoxData.name}`;
@@ -861,7 +940,6 @@
             waveTimeLeft = 5;
             lastPlayedTickIndex = -1;
 
-            // 1. 確保當前食物箱的正確答案不重複出現
             let availableAllowed = currentBoxData.allowed.filter(item => !usedAllowedInCurrentBox.includes(item));
             if (availableAllowed.length === 0) {
                 usedAllowedInCurrentBox = [];
@@ -870,12 +948,10 @@
             const chosenCorrect = availableAllowed[Math.floor(Math.random() * availableAllowed.length)];
             usedAllowedInCurrentBox.push(chosenCorrect);
 
-            // 2. 準備錯誤答案池 (包含不可放入物資 + 其它食物箱裡的物資)
             const otherBoxesAllowed = FOOD_BOXES.flatMap(b => b.allowed).filter(item => !currentBoxData.allowed.includes(item));
             const wrongCandidates = [...FORBIDDEN_ITEMS, ...otherBoxesAllowed];
             const shuffledWrong = shuffleArray(wrongCandidates).slice(0, 3);
 
-            // 3. 組合當波選項 (1個正確答案 + 3個其它/不可放入物資)
             const rawOptions = [
                 { name: chosenCorrect, isCorrect: true, icon: getItemIcon(chosenCorrect) },
                 { name: shuffledWrong[0], isCorrect: false, icon: getItemIcon(shuffledWrong[0]) },
@@ -884,7 +960,6 @@
             ];
             const currentWaveOptions = shuffleArray(rawOptions);
 
-            // 4. 發送給所有玩家
             players.forEach(p => {
                 p.waveAnswered = false;
                 p.choiceIndex = null;
@@ -946,7 +1021,7 @@
                     ai.timeLeft = waveTimeLeft;
 
                     if (isCorrect) {
-                        triggerCorrectBadgeAnimation();
+                        triggerJumpCorrectBadge();
                     }
 
                     renderPlayersDashboard();
@@ -969,12 +1044,11 @@
                 document.getElementById('timer-text').innerText = `⏱️ ${waveTimeLeft}s`;
                 document.getElementById('timer-bar').style.width = `${(remaining / duration) * 100}%`;
 
-                // 倒計時音效：最後 3 秒，每 1 秒發出一聲倒計時嗶嗶聲
                 if (remaining <= 3000 && remaining > 0) {
                     const secondIndex = Math.floor((3000 - remaining) / 1000);
                     if (secondIndex > lastPlayedTickIndex && secondIndex < 3) {
                         lastPlayedTickIndex = secondIndex;
-                        const isFinalTick = (secondIndex === 2); // 最後 1 秒發出更高頻急促音
+                        const isFinalTick = (secondIndex === 2);
                         playTickSound(isFinalTick);
                     }
                 }
