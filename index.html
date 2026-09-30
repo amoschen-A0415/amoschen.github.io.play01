@@ -227,11 +227,11 @@
 
         <!-- 大螢幕 - 題目波次間隔 Splash -->
         <div id="view-question-splash" class="hidden fixed inset-0 z-40 bg-amber-50/95 backdrop-blur-md flex flex-col items-center justify-center">
-            <span id="splash-box-title" class="text-2xl text-amber-800 font-black tracking-wider mb-2">🥣 膳糧食物箱</span>
-            <h1 id="splash-wave-text" class="text-6xl md:text-8xl font-black text-amber-900 drop-shadow-md">
+            <span id="splash-box-title" class="text-2xl text-amber-800 font-black tracking-wider mb-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-full px-4">🥣 膳糧食物箱</span>
+            <h1 id="splash-wave-text" class="text-6xl md:text-8xl font-black text-amber-900 drop-shadow-md whitespace-nowrap">
                 第 1 波物資選擇
             </h1>
-            <p class="text-xl text-amber-700 font-bold mt-4 animate-bounce">⏱️ 每波倒數 5 秒！準備好手速！</p>
+            <p class="text-xl text-amber-700 font-bold mt-4 animate-bounce whitespace-nowrap">⏱️ 每波倒數 5 秒！準備好手速！</p>
         </div>
 
         <!-- 大螢幕 - 遊戲主畫面 -->
@@ -262,19 +262,19 @@
 
                     <div class="flex justify-between items-center mb-3">
                         <div class="flex items-center gap-3">
-                            <span id="box-type-badge" class="bg-amber-500 text-white font-black text-base px-4 py-1.5 rounded-full shadow-md">
+                            <span id="box-type-badge" class="bg-amber-500 text-white font-black text-base px-4 py-1.5 rounded-full shadow-md whitespace-nowrap">
                                 🥣 膳糧食物箱
                             </span>
-                            <span id="wave-number" class="text-amber-950 font-black text-2xl md:text-3xl tracking-wide">
+                            <span id="wave-number" class="text-amber-950 font-black text-2xl md:text-3xl tracking-wide whitespace-nowrap">
                                 第 1 箱 - 第 1 / 4 波
                             </span>
                         </div>
-                        <span id="timer-text" class="text-4xl font-black text-orange-600 animate-pulse">⏱ 5s</span>
+                        <span id="timer-text" class="text-4xl font-black text-orange-600 animate-pulse whitespace-nowrap">⏱ 5s</span>
                     </div>
 
-                    <!-- 箱子任務指示與說明 (保留與食物箱的距離) -->
-                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center mb-16 shadow-md">
-                        <p id="box-instruction" class="text-lg md:text-xl font-black text-amber-900">
+                    <!-- 箱子任務指示與說明 (保留與食物箱的距離，設定為單行不換行) -->
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center mb-6 shadow-md overflow-hidden">
+                        <p id="box-instruction" class="text-lg md:text-xl font-black text-amber-900 whitespace-nowrap overflow-hidden text-ellipsis">
                             任務：請從手機點選合格物資放進箱子！
                         </p>
                     </div>
@@ -286,7 +286,7 @@
                         <!-- 食物箱 -->
                         <div id="main-big-box" class="w-[28rem] md:w-[34rem] h-[28rem] md:h-[34rem] max-h-[50vh] max-w-[85%] bg-gradient-to-br from-amber-100 via-amber-200 to-yellow-300 rounded-[3.5rem] border-[12px] border-amber-500/90 shadow-[0_25px_60px_-15px_rgba(217,119,6,0.3)] flex flex-col items-center justify-center relative box-active z-10 p-8">
                             <div class="text-[6.5rem] md:text-[8.5rem] leading-none mb-3 drop-shadow-md">📦</div>
-                            <span id="big-box-name" class="text-3xl md:text-5xl font-black text-amber-950 text-center tracking-wider mb-2">
+                            <span id="big-box-name" class="text-3xl md:text-5xl font-black text-amber-950 text-center tracking-wider mb-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
                                 膳糧食物箱
                             </span>
                             <div id="big-box-items-preview" class="flex flex-wrap gap-2.5 justify-center mt-4 max-w-[95%] max-h-[140px] overflow-y-auto">
@@ -308,7 +308,7 @@
         <div id="view-result" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-amber-900/60 backdrop-blur-md p-6">
             <div class="w-full max-w-6xl h-full max-h-[90vh] bg-white border-8 border-amber-300 rounded-3xl p-6 flex flex-col justify-between shadow-2xl overflow-hidden relative">
                 
-                <h2 class="text-3xl md:text-5xl font-black text-center text-amber-900 mb-2 flex-shrink-0">
+                <h2 class="text-3xl md:text-5xl font-black text-center text-amber-900 mb-2 flex-shrink-0 whitespace-nowrap">
                     🏆 志工打包大挑戰 榮譽頒獎 🏆
                 </h2>
 
@@ -334,15 +334,16 @@
 
     </main>
 
-    <footer id="main-footer" class="w-full py-1.5 px-4 rounded-xl sun-card text-center text-amber-800 text-xs flex-shrink-0 font-bold mt-2">
-        安得烈食物銀行 關懷弱勢・愛合格不浪費 | 志工服務體驗互動遊戲
+    <footer id="main-footer" class="w-full py-1.5 px-4 rounded-xl sun-card text-center text-amber-800 text-xs flex-shrink-0 font-bold mt-2 whitespace-nowrap">
+        安得烈食物銀行 關懷弱勢・愛合格不浪費 | 志工服務体验互動遊戲
     </footer>
 
     <script>
         /* ==========================================================================
-           1. 音效控制 (Web Audio API - 無外接依賴)
+           1. 音效控制 (Web Audio API - 倒計時急促警示音效)
            ========================================================================== */
         let audioCtx = null;
+
         function playTickSound(isHigh = false) {
             try {
                 if (!audioCtx) {
@@ -354,18 +355,23 @@
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
 
-                osc.type = 'sine';
-                // 最後一聲極高音 (1046.5Hz C6)，一般倒數滴聲為 (523.25Hz C5)
-                osc.frequency.setValueAtTime(isHigh ? 1046.5 : 523.25, audioCtx.currentTime); 
+                // 倒計時音效設定：鋸齒波 (sawtooth) 或三角波 (triangle) 更有急促緊迫感
+                osc.type = isHigh ? 'sawtooth' : 'triangle';
                 
-                gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+                // 頻率：普通倒數 660Hz (E5)，最後一聲高音 1320Hz (E6)
+                const freq = isHigh ? 1320 : 660;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                // 滑音效果，模擬經典倒計時嗶嗶聲
+                osc.frequency.exponentialRampToValueAtTime(freq * 0.8, audioCtx.currentTime + 0.08);
+
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
 
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
 
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.12);
+                osc.stop(audioCtx.currentTime + 0.09);
             } catch (e) {
                 console.log('Audio Context Error:', e);
             }
@@ -464,7 +470,7 @@
         let aiTimeouts = [];
         let isTransitioning = false;
         let waveTimeLeft = 5;
-        let lastPlayedTickIndex = -1; // 用於控制第 3 秒開始每半秒一次的滴聲索引
+        let lastPlayedTickIndex = -1; // 用於控制倒數計時音效的點
 
         let mobileHasAnswered = false;
 
@@ -536,12 +542,10 @@
         function triggerCorrectBadgeAnimation() {
             const container = document.getElementById('correct-badge-container');
             const badge = document.createElement('div');
-            badge.className = 'bg-emerald-500 text-white font-black text-xl md:text-2xl px-4 py-2 rounded-2xl shadow-xl border-2 border-white flex items-center gap-1 my-1 animate-correct';
+            badge.className = 'bg-emerald-500 text-white font-black text-xl md:text-2xl px-4 py-2 rounded-2xl shadow-xl border-2 border-white flex items-center gap-1 my-1 animate-correct whitespace-nowrap';
             badge.innerHTML = `<span>✨ 答對 +1</span>`;
             
             container.appendChild(badge);
-
-            // 保持顯示，波次結束清空
         }
 
         function initMobileController(hostId) {
@@ -622,7 +626,7 @@
                 btn.className = 'w-full h-32 bg-white border-2 border-amber-300 hover:border-amber-500 rounded-2xl shadow-md flex flex-col items-center justify-center transition active:scale-95';
                 btn.innerHTML = `
                     <span class="text-4xl">${opt.icon}</span>
-                    <span class="font-black text-amber-900 text-base mt-2">${opt.name}</span>
+                    <span class="font-black text-amber-900 text-base mt-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-full px-1">${opt.name}</span>
                 `;
                 btn.onclick = () => selectMobileOption(idx, btn);
                 container.appendChild(btn);
@@ -692,7 +696,7 @@
                 item.innerHTML = `
                     <div class="flex items-center gap-2 truncate">
                         <span class="text-xl">${p.isAI ? '🤖' : '📱'}</span>
-                        <span class="font-bold text-amber-900 truncate">${p.displayName || p.name}</span>
+                        <span class="font-bold text-amber-900 truncate whitespace-nowrap">${p.displayName || p.name}</span>
                     </div>
                     <span class="text-[10px] ${p.isAI ? 'bg-orange-100 text-orange-800' : 'bg-emerald-100 text-emerald-800'} px-2 py-0.5 rounded-full font-bold flex-shrink-0">
                         ${p.isAI ? 'AI' : '連線'}
@@ -916,7 +920,7 @@
             const sampleItems = players.length > 0 ? players[0].packedItems : [];
             sampleItems.forEach(item => {
                 const tag = document.createElement('span');
-                tag.className = 'bg-white/90 border-2 border-amber-400 text-amber-900 text-sm md:text-base font-black px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pop';
+                tag.className = 'bg-white/90 border-2 border-amber-400 text-amber-900 text-sm md:text-base font-black px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pop whitespace-nowrap';
                 tag.innerHTML = `<span>${getItemIcon(item)}</span> <span>${item}</span>`;
                 container.appendChild(tag);
             });
@@ -965,13 +969,12 @@
                 document.getElementById('timer-text').innerText = `⏱️ ${waveTimeLeft}s`;
                 document.getElementById('timer-bar').style.width = `${(remaining / duration) * 100}%`;
 
-                // 從第 3 秒開始 (即倒數第 2.5 秒 ~ 0 秒區域)，每半秒 (500ms) 滴一聲，共 6 聲
+                // 倒計時音效：最後 3 秒，每 1 秒發出一聲倒計時嗶嗶聲
                 if (remaining <= 3000 && remaining > 0) {
-                    // 計算當前半秒索引 (0 到 5)
-                    const halfSecondIdx = Math.floor((3000 - remaining) / 500);
-                    if (halfSecondIdx > lastPlayedTickIndex && halfSecondIdx < 6) {
-                        lastPlayedTickIndex = halfSecondIdx;
-                        const isFinalTick = (halfSecondIdx === 5); // 第 6 聲 (約剩餘 0.5s 時) 播放高一階音效
+                    const secondIndex = Math.floor((3000 - remaining) / 1000);
+                    if (secondIndex > lastPlayedTickIndex && secondIndex < 3) {
+                        lastPlayedTickIndex = secondIndex;
+                        const isFinalTick = (secondIndex === 2); // 最後 1 秒發出更高頻急促音
                         playTickSound(isFinalTick);
                     }
                 }
@@ -1022,7 +1025,7 @@
             }, 1000);
         }
 
-        // 修改：排行榜不再顯示個別選項或選擇結果，隱藏答案
+        // 排行榜渲染
         function renderPlayersDashboard() {
             const dashboard = document.getElementById('players-dashboard');
             dashboard.innerHTML = '';
@@ -1034,7 +1037,6 @@
                 const card = document.createElement('div');
                 let borderClass = 'border-amber-200 bg-white/80';
                 
-                // 不顯示特定「已選擇」或答案字樣，僅改變邊框顏色代表已作答
                 if (p.waveAnswered) {
                     borderClass = 'border-amber-400 bg-amber-100/60 shadow-sm';
                 }
@@ -1042,11 +1044,11 @@
                 card.className = `p-2.5 rounded-2xl border-2 ${borderClass} flex items-center justify-between transition-all flex-shrink-0`;
                 card.innerHTML = `
                     <div class="flex items-center gap-2 truncate max-w-[70%]">
-                        <span class="font-black text-amber-800 text-sm min-w-[24px] text-center">#${rank + 1}</span>
-                        <span class="font-black text-amber-900 text-base truncate">${p.displayName || p.name}</span>
+                        <span class="font-black text-amber-800 text-sm min-w-[24px] text-center whitespace-nowrap">#${rank + 1}</span>
+                        <span class="font-black text-amber-900 text-base truncate whitespace-nowrap">${p.displayName || p.name}</span>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
-                        <span class="text-orange-600 font-black text-lg">${p.score} 分</span>
+                        <span class="text-orange-600 font-black text-lg whitespace-nowrap">${p.score} 分</span>
                     </div>
                 `;
                 dashboard.appendChild(card);
@@ -1082,8 +1084,8 @@
                 const item = document.createElement('div');
                 item.className = 'flex justify-between items-center p-2.5 bg-white rounded-xl border border-amber-200 text-sm';
                 item.innerHTML = `
-                    <span class="font-bold text-amber-900">#${idx + 1} ${p.displayName || p.name}</span>
-                    <span class="font-black text-orange-600">${p.score} 分</span>
+                    <span class="font-bold text-amber-900 whitespace-nowrap overflow-hidden text-ellipsis">#${idx + 1} ${p.displayName || p.name}</span>
+                    <span class="font-black text-orange-600 whitespace-nowrap">${p.score} 分</span>
                 `;
                 leftContainer.appendChild(item);
             });
@@ -1099,22 +1101,22 @@
                 if (idx === 0) {
                     card.className = 'w-full max-w-md p-5 rounded-3xl border-4 border-amber-400 bg-white shadow-xl flex flex-col items-center justify-center';
                     card.innerHTML = `
-                        <span class="text-sm font-black text-amber-900 bg-amber-200 px-4 py-1 rounded-full mb-1">👑 冠軍愛心包裝王 👑</span>
+                        <span class="text-sm font-black text-amber-900 bg-amber-200 px-4 py-1 rounded-full mb-1 whitespace-nowrap">👑 冠軍愛心包裝王 👑</span>
                         <div class="text-5xl my-1">🥇</div>
-                        <div class="text-2xl font-black text-amber-900">${p.displayName || p.name}</div>
-                        <div class="text-2xl font-black text-emerald-600 mt-1">${p.score} 分</div>
+                        <div class="text-2xl font-black text-amber-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-full">${p.displayName || p.name}</div>
+                        <div class="text-2xl font-black text-emerald-600 mt-1 whitespace-nowrap">${p.score} 分</div>
                     `;
                 } else {
                     card.className = 'w-full max-w-md p-3.5 rounded-2xl border-2 border-amber-300 bg-white shadow flex justify-between items-center px-6';
                     card.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="text-3xl">${idx === 1 ? '🥈' : '🥉'}</span>
-                            <div class="text-left">
-                                <span class="text-xs font-bold text-amber-700">${medals[idx]}</span>
-                                <div class="text-xl font-black text-amber-900">${p.displayName || p.name}</div>
+                        <div class="flex items-center gap-3 truncate">
+                            <span class="text-3xl flex-shrink-0">${idx === 1 ? '🥈' : '🥉'}</span>
+                            <div class="text-left truncate">
+                                <span class="text-xs font-bold text-amber-700 whitespace-nowrap">${medals[idx]}</span>
+                                <div class="text-xl font-black text-amber-900 truncate whitespace-nowrap">${p.displayName || p.name}</div>
                             </div>
                         </div>
-                        <div class="text-xl font-black text-emerald-600">${p.score} 分</div>
+                        <div class="text-xl font-black text-emerald-600 flex-shrink-0 whitespace-nowrap">${p.score} 分</div>
                     `;
                 }
                 top3Container.appendChild(card);
