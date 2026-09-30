@@ -274,44 +274,48 @@
                     </div>
                 </div>
 
-                <!-- 中央區域：食物箱與題目任務指示區塊 -->
-                <div class="relative flex-grow flex flex-col items-center justify-center w-full my-auto overflow-hidden">
-                    
-                    <!-- 上方：中央圖案 (食物箱展示區) -->
-                    <div class="relative flex items-center justify-center max-w-full">
+                <!-- 中央區域：改為左右兩欄佈局（食物箱在左、文字說明在右，徹底解決重疊問題） -->
+                <div class="relative flex-grow flex items-center justify-center w-full my-auto overflow-hidden px-4">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center w-full max-w-5xl my-auto">
                         
-                        <!-- 食物箱 -->
-                        <div id="main-big-box" class="w-[21.6rem] md:w-[28.8rem] max-h-[36vh] max-w-[90vw] flex flex-col items-center justify-center relative box-active z-10 p-1">
-                            <div class="text-[9rem] md:text-[11.4rem] leading-none mb-2 drop-shadow-2xl">📦</div>
-                            
-                            <!-- 文字完整顯示 + 若有年齡層則顯示在下一行 -->
-                            <div class="flex flex-col items-center justify-center text-center">
-                                <span id="big-box-title" class="text-2xl md:text-4xl font-black text-amber-950 tracking-wider whitespace-nowrap">
-                                    膳糧食物箱
-                                </span>
-                                <span id="big-box-age" class="text-lg md:text-2xl font-bold text-amber-800 mt-1 whitespace-nowrap">
-                                    (3-15歲)
-                                </span>
+                        <!-- 左側：食物箱與答對跳躍提示 -->
+                        <div class="md:col-span-5 flex flex-col items-center justify-center relative">
+                            <div id="main-big-box" class="w-full flex flex-col items-center justify-center relative box-active z-10 p-2">
+                                <div class="text-[8rem] md:text-[10rem] leading-none drop-shadow-2xl">📦</div>
+                                <div id="big-box-items-preview" class="flex flex-wrap gap-1.5 justify-center mt-3 max-w-[95%] max-h-[80px] overflow-y-auto">
+                                    <!-- 已放入箱子物資動態縮圖 -->
+                                </div>
                             </div>
 
-                            <div id="big-box-items-preview" class="flex flex-wrap gap-1.5 justify-center mt-2 max-w-[95%] max-h-[85px] overflow-y-auto">
-                                <!-- 已放入箱子物資動態縮圖 -->
+                            <!-- 「答對+1」跳躍效果顯示區 -->
+                            <div id="correct-badge-container" class="absolute right-0 top-0 translate-x-4 -translate-y-4 flex flex-col items-center justify-center pointer-events-none z-30">
+                                <!-- JS 動態插入跳躍動畫的「答對+1」 -->
                             </div>
                         </div>
 
-                        <!-- 右側：「答對+1」跳躍效果顯示區 -->
-                        <div id="correct-badge-container" class="absolute right-0 md:right-2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none z-30 max-w-xs">
-                            <!-- JS 動態插入跳躍動畫的「答對+1」 -->
+                        <!-- 右側：食物箱名稱、年齡層與任務指示區塊 -->
+                        <div class="md:col-span-7 flex flex-col items-start justify-center space-y-4 text-left z-20">
+                            <div class="bg-white/90 backdrop-blur-md border-3 border-amber-300 rounded-3xl p-6 shadow-lg w-full">
+                                <div class="flex flex-col items-start">
+                                    <span id="big-box-title" class="text-3xl md:text-5xl font-black text-amber-950 tracking-wider">
+                                        膳糧食物箱
+                                    </span>
+                                    <span id="big-box-age" class="text-xl md:text-3xl font-bold text-amber-800 mt-2">
+                                        (3-15歲)
+                                    </span>
+                                </div>
+
+                                <hr class="border-amber-200 my-4 w-full">
+
+                                <div class="bg-amber-100/70 p-4 rounded-2xl border border-amber-300/80 w-full">
+                                    <p id="box-instruction" class="text-lg md:text-xl font-black text-amber-900 leading-relaxed">
+                                        💡 任務說明：<br>請從手機畫面中點選合格物資放進箱子！
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- 下方：題目任務指示與說明 (位置移動至食物箱下方，保留 mt-8 間距避免重疊) -->
-                    <div class="w-full max-w-3xl bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center shadow-md overflow-hidden mt-8 z-20 flex-shrink-0">
-                        <p id="box-instruction" class="text-lg md:text-xl font-black text-amber-900 whitespace-nowrap overflow-hidden text-ellipsis">
-                            任務：請從手機點選合格物資放進箱子！
-                        </p>
                     </div>
-
                 </div>
 
             </div>
@@ -517,7 +521,7 @@
             '尿布': '👶', '專案物資': '🎁', 
             '養生珍菇雞湯': '🍲', '花生豬腳': '🍖', '佛跳牆': '🍲', '紅燒羊肉爐': '🍲', '筍乾焢肉': '🥩', '櫻花蝦米糕': '🍚',
             
-            '辣味豆干': '🌶️️', '辣味罐頭': '🌶', '玻璃罐頭': '🫙', '辣味調理包': '🌶️',
+            '辣味豆干': '🌶', '辣味罐頭': '🌶', '玻璃罐頭': '🫙', '辣味調理包': '🌶️',
             '麻辣鴨血': '🍲', '咖啡': '☕', '洋芋片': '🥔', '泡麵': '🍜', '碳酸飲料': '🥤',
             '生鮮蔬菜': '🥬', '醬瓜罐頭': '🫙'
         };
