@@ -162,7 +162,7 @@
             </div>
         </div>
 
-        <!-- 手機端 - 玩家控制器 (含暱稱輸入、選項按鈕與已打包清單) -->
+        <!-- 手機端 - 玩家控制器 -->
         <div id="view-player-mobile" class="hidden fixed inset-0 z-50 bg-amber-50/95 p-4 flex-col justify-between overflow-hidden">
             
             <div id="mobile-join-form" class="space-y-4 bg-white p-6 rounded-3xl border-4 border-amber-300 shadow-xl my-auto">
@@ -197,28 +197,30 @@
                     </div>
                 </div>
 
-                <!-- 中間：4 個選擇物資按鈕 (答案在手機端呈現) -->
-                <div id="mobile-options-container" class="grid grid-cols-2 gap-3 my-3 flex-shrink-0">
+                <!-- 中間：4 個選擇物資按鈕 (移除下方清單後加大呈現空間) -->
+                <div id="mobile-options-container" class="grid grid-cols-2 gap-4 my-auto flex-grow items-center p-2">
                     <!-- JS 動態產生選項按鈕 -->
                 </div>
 
-                <!-- 下方：已放進食物箱的物資清單 -->
-                <div class="bg-white/90 p-4 rounded-3xl border-2 border-amber-300 shadow-inner flex-grow flex flex-col justify-start overflow-hidden">
-                    <h3 class="text-amber-900 font-black text-sm mb-2 flex items-center justify-between border-b pb-1 flex-shrink-0">
-                        <span>📦 已放入食物箱的物資</span>
-                        <span id="mobile-item-count" class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">0 / 4 樣</span>
-                    </h3>
-                    <div id="mobile-packed-items" class="grid grid-cols-2 gap-2 overflow-y-auto flex-grow">
-                        <div class="col-span-2 text-center text-amber-700/50 py-6 font-bold border-2 border-dashed border-amber-200 rounded-2xl text-xs">
-                            等待您選擇合格物資...
-                        </div>
-                    </div>
-                </div>
-
                 <!-- 底部：操作響應訊息 -->
-                <div id="mobile-status-text" class="mt-2 text-center bg-amber-200/80 text-amber-900 font-black py-2 px-3 rounded-xl text-xs border border-amber-300 flex-shrink-0">
+                <div id="mobile-status-text" class="mt-2 text-center bg-amber-200/80 text-amber-900 font-black py-2.5 px-3 rounded-xl text-sm border border-amber-300 flex-shrink-0 shadow-sm">
                     ☀️ 準備好了！請點選上方物資進行搶答！
                 </div>
+            </div>
+
+            <!-- 手機端 - 最終結算（參照安得烈大哉問聯網最終版） -->
+            <div id="mobile-final-result" class="hidden my-auto flex-col items-center justify-center space-y-4 text-center bg-white border-4 border-amber-400 p-8 rounded-3xl shadow-2xl w-full">
+                <span class="text-6xl" id="mobile-result-icon">🏆</span>
+                <h2 class="text-2xl font-black text-amber-900">遊戲最終結算</h2>
+                
+                <div class="flex flex-col items-center space-y-1 my-2">
+                    <div class="text-5xl font-black text-amber-900 tracking-wider" id="mobile-result-rank">第 - 名</div>
+                    <div class="text-lg font-bold text-amber-700" id="mobile-result-total">共 - 人</div>
+                </div>
+
+                <div class="text-2xl font-bold text-amber-800">總得分：<span id="mobile-result-score" class="text-emerald-600 font-black">0</span> 分</div>
+                
+                <div id="mobile-result-status" class="text-base font-bold text-amber-900 pt-2">感謝您的熱情參與！</div>
             </div>
         </div>
 
@@ -395,6 +397,10 @@
             return ITEM_ICONS[itemName] || '📦';
         }
 
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
         /* ==========================================================================
            2. 全局遊戲狀態與變數
            ========================================================================== */
@@ -550,21 +556,48 @@
 
                 hostConn.on('data', (data) => {
                     if (data.type === 'GAME_START') {
-                        document.getElementById('mobile-status-text').innerText = '🎮 挑戰開始！請選擇下方合格物資！';
+                        document.getElementById('mobile-status-text').innerText = '🎮 挑戰開始！請選擇合格物資！';
                     } else if (data.type === 'WAVE_START') {
                         mobileHasAnswered = false;
                         document.getElementById('mobile-box-num').innerText = `第 ${data.boxIndex + 1}/${data.totalBoxes} 箱`;
                         document.getElementById('mobile-wave-num').innerText = `第 ${data.waveIndex + 1}/4 波`;
-                        document.getElementById('mobile-status-text').innerText = '⏱️ 請點選下方物資進行搶答！';
+                        document.getElementById('mobile-status-text').innerText = '⏱️ 請點選上方物資進行搶答！';
                         renderMobileOptions(data.options);
-                    } else if (data.type === 'UPDATE_PACKED_ITEMS') {
-                        renderMobilePackedItems(data.packedItems);
                     } else if (data.type === 'FINAL_RESULT') {
-                        document.getElementById('mobile-game-panel').classList.add('hidden');
-                        document.getElementById('mobile-status-text').innerText = `🏆 結算完成！您的排名：第 ${data.rank} 名，得分：${data.score} 分`;
+                        showMobileFinalResult(data.rank, data.score, data.totalPlayers);
                     }
                 });
             });
+        }
+
+        /* 參照安得烈大哉問聯網最終版：手機端最終結算顯示 */
+        function showMobileFinalResult(rank, score, totalPlayers) {
+            document.getElementById('mobile-game-panel').classList.add('hidden');
+
+            const resultBox = document.getElementById('mobile-final-result');
+            resultBox.classList.remove('hidden');
+            resultBox.classList.add('flex');
+
+            document.getElementById('mobile-result-rank').innerText = `第 ${rank} 名`;
+            document.getElementById('mobile-result-total').innerText = `共 ${totalPlayers} 人`;
+            document.getElementById('mobile-result-score').innerText = score;
+
+            const iconEl = document.getElementById('mobile-result-icon');
+            const statusEl = document.getElementById('mobile-result-status');
+
+            if (rank === 1) {
+                iconEl.innerText = '🥇';
+                statusEl.innerText = '🎉 恭喜榮獲 愛心包裝王！';
+            } else if (rank === 2) {
+                iconEl.innerText = '🥈';
+                statusEl.innerText = '✨ 恭喜榮獲 亞軍志工！';
+            } else if (rank === 3) {
+                iconEl.innerText = '🥉';
+                statusEl.innerText = '👏 恭喜榮獲 季軍志工！';
+            } else {
+                iconEl.innerText = '🏅';
+                statusEl.innerText = `感謝您的熱情參與！表現相當出色！`;
+            }
         }
 
         document.getElementById('btn-mobile-join').addEventListener('click', () => {
@@ -580,17 +613,17 @@
             }
         });
 
-        // 手機端渲染物資選項按鈕 (答案在手機端呈現)
+        // 手機端渲染物資選項按鈕
         function renderMobileOptions(options) {
             const container = document.getElementById('mobile-options-container');
             container.innerHTML = '';
 
             options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
-                btn.className = 'w-full py-4 bg-white border-2 border-amber-300 hover:border-amber-500 rounded-2xl shadow-md flex flex-col items-center justify-center transition active:scale-95';
+                btn.className = 'w-full h-32 bg-white border-2 border-amber-300 hover:border-amber-500 rounded-2xl shadow-md flex flex-col items-center justify-center transition active:scale-95';
                 btn.innerHTML = `
-                    <span class="text-3xl">${opt.icon}</span>
-                    <span class="font-black text-amber-900 text-sm mt-1">${opt.name}</span>
+                    <span class="text-4xl">${opt.icon}</span>
+                    <span class="font-black text-amber-900 text-base mt-2">${opt.name}</span>
                 `;
                 btn.onclick = () => selectMobileOption(idx, btn);
                 container.appendChild(btn);
@@ -622,33 +655,8 @@
             }
         }
 
-        function renderMobilePackedItems(packedItems) {
-            const container = document.getElementById('mobile-packed-items');
-            container.innerHTML = '';
-            document.getElementById('mobile-item-count').innerText = `${packedItems.length} / 4 樣`;
-
-            if (packedItems.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-2 text-center text-amber-700/50 py-6 font-bold border-2 border-dashed border-amber-200 rounded-2xl text-xs">
-                        等待放進食物箱的物資...
-                    </div>
-                `;
-                return;
-            }
-
-            packedItems.forEach(item => {
-                const el = document.createElement('div');
-                el.className = 'flex items-center gap-2 p-2 bg-amber-100/80 rounded-xl border border-amber-300 font-black text-amber-900 text-xs animate-pop';
-                el.innerHTML = `
-                    <span class="text-xl">${getItemIcon(item)}</span>
-                    <span class="truncate">${item}</span>
-                `;
-                container.appendChild(el);
-            });
-        }
-
         /* ==========================================================================
-           5. 大廳與玩家管理
+           5. 大廳與玩家管理 (比照大哉問 AI 邏輯)
            ========================================================================== */
         function addPlayer(name, conn, playerId) {
             if (players.some(p => p.id === playerId)) return;
@@ -656,8 +664,10 @@
             const p = {
                 id: playerId,
                 name: name,
+                displayName: name,
                 conn: conn,
                 isAI: false,
+                aiType: null,
                 score: 0,
                 waveAnswered: false,
                 choiceIndex: null,
@@ -683,7 +693,7 @@
                 item.innerHTML = `
                     <div class="flex items-center gap-2 truncate">
                         <span class="text-xl">${p.isAI ? '🤖' : '📱'}</span>
-                        <span class="font-bold text-amber-900 truncate">${p.name}</span>
+                        <span class="font-bold text-amber-900 truncate">${p.displayName || p.name}</span>
                     </div>
                     <span class="text-[10px] ${p.isAI ? 'bg-orange-100 text-orange-800' : 'bg-emerald-100 text-emerald-800'} px-2 py-0.5 rounded-full font-bold flex-shrink-0">
                         ${p.isAI ? 'AI' : '連線'}
@@ -700,21 +710,75 @@
 
         function finalizeAndStartGame() {
             totalBoxCount = parseInt(document.getElementById('select-box-count').value, 10);
-            const aiCount = parseInt(document.getElementById('select-ai-count').value, 10);
+            const aiToAddCount = parseInt(document.getElementById('select-ai-count').value, 10);
 
-            const andrewProb = totalBoxCount * 0.01;
+            // 安得烈小羅出現機率為 總波次(總箱數*4波) * 1%
+            const totalWaves = totalBoxCount * 4;
+            const andrewProbability = totalWaves * 0.01;
 
-            if (aiCount > 0) {
-                for (let i = 0; i < aiCount; i++) {
-                    let isAndrew = Math.random() < andrewProb;
-                    let aiName = isAndrew ? '安得烈小羅' : `🤖 助人志工${i + 1}號`;
+            if (aiToAddCount > 0) {
+                const availableTypes = ['andrew', 'tom', 'mario', 'random'];
+                
+                for (let i = 0; i < aiToAddCount; i++) {
+                    let aiSpec = {};
+                    let isAndrew = (Math.random() < andrewProbability) && availableTypes.includes('andrew');
                     
+                    if (isAndrew) {
+                        const acc = getRandomInt(90, 100);
+                        aiSpec = {
+                            baseName: '安得烈小羅',
+                            fullName: `安得烈小羅(${acc}%)`,
+                            type: 'andrew',
+                            accRate: acc / 100
+                        };
+                        availableTypes.splice(availableTypes.indexOf('andrew'), 1);
+                    } else {
+                        let nonAndrewTypes = availableTypes.filter(t => t !== 'andrew');
+                        if (nonAndrewTypes.length === 0) break;
+
+                        let chosenType = nonAndrewTypes[Math.floor(Math.random() * nonAndrewTypes.length)];
+                        availableTypes.splice(availableTypes.indexOf(chosenType), 1);
+
+                        if (chosenType === 'tom') {
+                            const acc = getRandomInt(50, 80);
+                            aiSpec = {
+                                baseName: '🤖 特工阿湯哥',
+                                fullName: `🤖 特工阿湯哥(${acc}%)`,
+                                type: 'tom',
+                                accRate: acc / 100
+                            };
+                        } else if (chosenType === 'mario') {
+                            const acc = getRandomInt(40, 70);
+                            aiSpec = {
+                                baseName: '🍄 瑪莉歐',
+                                fullName: `🍄 瑪莉歐(${acc}%)`,
+                                type: 'mario',
+                                accRate: acc / 100
+                            };
+                        } else {
+                            const randomNames = [
+                                '廖太太', '三寶媽', '閃電葛葛', '晶晶阿姨', 
+                                '小光光', '巧克力阿北', '小白白', '阿青青'
+                            ];
+                            const pickedName = randomNames[Math.floor(Math.random() * randomNames.length)];
+                            const acc = getRandomInt(10, 90);
+                            aiSpec = {
+                                baseName: pickedName,
+                                fullName: `${pickedName}(${acc}%)`,
+                                type: 'random',
+                                accRate: acc / 100
+                            };
+                        }
+                    }
+
                     players.push({
                         id: 'ai_' + Date.now() + '_' + i,
-                        name: aiName,
+                        name: aiSpec.fullName,
+                        displayName: aiSpec.baseName,
                         conn: null,
                         isAI: true,
-                        isAndrew: isAndrew,
+                        aiType: aiSpec.type,
+                        aiSpec: aiSpec,
                         score: 0,
                         waveAnswered: false,
                         choiceIndex: null,
@@ -840,7 +904,8 @@
         function triggerAIBehaviors() {
             players.filter(p => p.isAI).forEach(ai => {
                 const correctIdx = currentWaveOptions.findIndex(o => o.isCorrect);
-                const isCorrect = Math.random() < (ai.isAndrew ? 0.95 : 0.70);
+                const accRate = ai.aiSpec ? ai.aiSpec.accRate : 0.75;
+                const isCorrect = Math.random() < accRate;
                 
                 let chosenIdx = correctIdx;
                 if (!isCorrect) {
@@ -904,13 +969,6 @@
                         p.packedItems.push(chosenOpt.name);
                     }
                 }
-
-                if (p.conn) {
-                    p.conn.send({
-                        type: 'UPDATE_PACKED_ITEMS',
-                        packedItems: p.packedItems
-                    });
-                }
             });
 
             renderPlayersDashboard();
@@ -948,7 +1006,7 @@
                 card.innerHTML = `
                     <div class="flex items-center gap-2 truncate max-w-[65%]">
                         <span class="font-black text-amber-800 text-sm min-w-[24px] text-center">#${rank + 1}</span>
-                        <span class="font-black text-amber-900 text-base truncate">${p.name}</span>
+                        <span class="font-black text-amber-900 text-base truncate">${p.displayName || p.name}</span>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <span class="text-orange-600 font-black text-lg">${p.score} 分</span>
@@ -974,7 +1032,8 @@
                     p.conn.send({
                         type: 'FINAL_RESULT',
                         rank: rank,
-                        score: p.score
+                        score: p.score,
+                        totalPlayers: allSorted.length
                     });
                 }
             });
@@ -987,7 +1046,7 @@
                 const item = document.createElement('div');
                 item.className = 'flex justify-between items-center p-2.5 bg-white rounded-xl border border-amber-200 text-sm';
                 item.innerHTML = `
-                    <span class="font-bold text-amber-900">#${idx + 1} ${p.name}</span>
+                    <span class="font-bold text-amber-900">#${idx + 1} ${p.displayName || p.name}</span>
                     <span class="font-black text-orange-600">${p.score} 分</span>
                 `;
                 leftContainer.appendChild(item);
@@ -1006,7 +1065,7 @@
                     card.innerHTML = `
                         <span class="text-sm font-black text-amber-900 bg-amber-200 px-4 py-1 rounded-full mb-1">👑 冠軍愛心包裝王 👑</span>
                         <div class="text-5xl my-1">🥇</div>
-                        <div class="text-2xl font-black text-amber-900">${p.name}</div>
+                        <div class="text-2xl font-black text-amber-900">${p.displayName || p.name}</div>
                         <div class="text-2xl font-black text-emerald-600 mt-1">${p.score} 分</div>
                     `;
                 } else {
@@ -1016,7 +1075,7 @@
                             <span class="text-3xl">${idx === 1 ? '🥈' : '🥉'}</span>
                             <div class="text-left">
                                 <span class="text-xs font-bold text-amber-700">${medals[idx]}</span>
-                                <div class="text-xl font-black text-amber-900">${p.name}</div>
+                                <div class="text-xl font-black text-amber-900">${p.displayName || p.name}</div>
                             </div>
                         </div>
                         <div class="text-xl font-black text-emerald-600">${p.score} 分</div>
