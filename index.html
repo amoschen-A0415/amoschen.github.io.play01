@@ -87,12 +87,6 @@
                 安得烈食物銀行 <span class="bg-amber-100 text-amber-800 text-base px-3 py-1 rounded-full border border-amber-300">志工打包大挑戰</span>
             </h1>
         </div>
-        <div class="flex items-center gap-3">
-            <button id="bgm-toggle-btn" onclick="toggleBGM()" class="bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 px-4 py-1.5 rounded-full text-sm font-bold flex items-center space-x-1.5 border border-amber-300 shadow-sm transition">
-                <span id="bgm-icon">🎵</span>
-                <span id="bgm-text">背景音樂: 關</span>
-            </button>
-        </div>
     </header>
 
     <!-- 主要內容區 -->
@@ -265,25 +259,25 @@
                                 第 1 箱 - 第 1 / 4 波
                             </span>
                         </div>
-                        <span id="timer-text" class="text-3xl font-black text-orange-600 animate-pulse">⏱️️ 5s</span>
+                        <span id="timer-text" class="text-3xl font-black text-orange-600 animate-pulse">⏱ 5s</span>
                     </div>
 
-                    <!-- 箱子任務指示與說明 -->
-                    <div class="bg-amber-50/80 rounded-2xl p-3 border border-amber-200 text-center mb-2 shadow-sm">
+                    <!-- 箱子任務指示與說明 (增加 mb-8 下邊距以跟下方食物箱保留距離) -->
+                    <div class="bg-amber-50/80 rounded-2xl p-3 border border-amber-200 text-center mb-8 shadow-sm">
                         <p id="box-instruction" class="text-base md:text-lg font-black text-amber-900">
                             任務：請從手機點選合格物資放進箱子！
                         </p>
                     </div>
                 </div>
 
-                <!-- 中央區域：中央食物箱展示區（圖示及文字放大2倍，與任務指示等區域共同佔約一半螢幕） -->
+                <!-- 中央區域：中央食物箱展示區（尺寸放大一倍） -->
                 <div class="relative flex-grow flex flex-col items-center justify-center w-full my-auto p-2 overflow-hidden">
-                    <div id="main-big-box" class="w-[32rem] h-[32rem] md:w-[40rem] md:h-[40rem] max-h-[50vh] w-full bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-[3rem] border-[12px] border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-6">
-                        <div class="text-8xl md:text-9xl mb-3">📦</div>
-                        <span id="big-box-name" class="text-3xl md:text-5xl font-black text-amber-900 text-center tracking-wider">
+                    <div id="main-big-box" class="w-[64rem] h-[64rem] max-h-[75vh] max-w-[95%] bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-[4rem] border-[16px] border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-8">
+                        <div class="text-[10rem] md:text-[12rem] mb-4">📦</div>
+                        <span id="big-box-name" class="text-5xl md:text-7xl font-black text-amber-900 text-center tracking-wider mb-2">
                             長青食物箱
                         </span>
-                        <div id="big-box-items-preview" class="flex flex-wrap gap-2 justify-center mt-4 max-w-[95%]">
+                        <div id="big-box-items-preview" class="flex flex-wrap gap-3 justify-center mt-6 max-w-[95%]">
                             <!-- 已放入箱子物資動態縮圖 -->
                         </div>
                     </div>
@@ -414,82 +408,10 @@
         let isTransitioning = false;
         let waveTimeLeft = 5;
 
-        let audioCtx = null;
-        let isBgmPlaying = false;
-        let bgmTimerId = null;
         let mobileHasAnswered = false;
 
         /* ==========================================================================
-           3. 音效與 Web Audio 聲響 (大黃蜂的飛行 Flight of the Bumblebee)
-           ========================================================================== */
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-
-        function playSingleNote(freq, duration, type = 'sawtooth', gainVal = 0.05) {
-            if (!audioCtx || freq <= 0) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
-        }
-
-        // 大黃蜂的飛行經典半音階快速旋律
-        const BUMBLEBEE_MOTIF = [
-            587.33, 554.37, 523.25, 493.88, 523.25, 554.37, 587.33, 554.37,
-            523.25, 493.88, 466.16, 440.00, 466.16, 493.88, 523.25, 493.88,
-            466.16, 440.00, 415.30, 392.00, 415.30, 440.00, 466.16, 440.00,
-            415.30, 392.00, 369.99, 349.23, 369.99, 392.00, 415.30, 440.00,
-            440.00, 466.16, 493.88, 523.25, 554.37, 587.33, 622.25, 659.25,
-            622.25, 587.33, 554.37, 523.25, 493.88, 466.16, 440.00, 415.30
-        ];
-
-        function playSunBgm() {
-            initAudio();
-            stopBgm();
-            isBgmPlaying = true;
-            let idx = 0;
-
-            function loop() {
-                if (!isBgmPlaying) return;
-                playSingleNote(BUMBLEBEE_MOTIF[idx], 0.1, 'sawtooth', 0.04);
-                idx = (idx + 1) % BUMBLEBEE_MOTIF.length;
-                bgmTimerId = setTimeout(loop, 80);
-            }
-            loop();
-        }
-
-        function stopBgm() {
-            isBgmPlaying = false;
-            if (bgmTimerId) {
-                clearTimeout(bgmTimerId);
-                bgmTimerId = null;
-            }
-        }
-
-        function toggleBGM() {
-            if (isBgmPlaying) {
-                stopBgm();
-                document.getElementById('bgm-text').innerText = "背景音樂: 關";
-            } else {
-                playSunBgm();
-                document.getElementById('bgm-text').innerText = "背景音樂: 開";
-            }
-        }
-
-        /* ==========================================================================
-           4. PeerJS 網路連線邏輯
+           3. PeerJS 網路連線邏輯
            ========================================================================== */
         window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -656,7 +578,7 @@
         }
 
         /* ==========================================================================
-           5. 大廳與玩家管理
+           4. 大廳與玩家管理
            ========================================================================== */
         function addPlayer(name, conn, playerId) {
             if (players.some(p => p.id === playerId)) return;
@@ -705,11 +627,6 @@
         }
 
         document.getElementById('btn-start-game').addEventListener('click', () => {
-            initAudio();
-            if (!isBgmPlaying) {
-                playSunBgm();
-                document.getElementById('bgm-text').innerText = "背景音樂: 開";
-            }
             finalizeAndStartGame();
         });
 
@@ -820,7 +737,7 @@
         }
 
         /* ==========================================================================
-           6. 核心遊戲流程：食物箱與 4 波答題
+           5. 核心遊戲流程：食物箱與 4 波答題
            ========================================================================== */
         
         function startNewBoxFlow(boxIdx) {
@@ -917,7 +834,7 @@
             const sampleItems = players.length > 0 ? players[0].packedItems : [];
             sampleItems.forEach(item => {
                 const tag = document.createElement('span');
-                tag.className = 'bg-white/90 border border-amber-400 text-amber-900 text-xs font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm animate-pop';
+                tag.className = 'bg-white/90 border-2 border-amber-400 text-amber-900 text-base md:text-xl font-black px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pop';
                 tag.innerHTML = `<span>${getItemIcon(item)}</span> <span>${item}</span>`;
                 container.appendChild(tag);
             });
@@ -976,7 +893,7 @@
         }
 
         /* ==========================================================================
-           7. 計分規則與波次推進
+           6. 計分規則與波次推進
            ========================================================================== */
         function evaluateWaveAndProceed() {
             if (isTransitioning) return;
@@ -1040,7 +957,7 @@
         }
 
         /* ==========================================================================
-           8. 最終結算與頒獎
+           7. 最終結算與頒獎
            ========================================================================== */
         function showFinalResult() {
             document.getElementById('view-game').classList.add('hidden');
@@ -1114,7 +1031,7 @@
         }
 
         /* ==========================================================================
-           9. 工具函式
+           8. 工具函式
            ========================================================================== */
         function clearAllTimers() {
             if (timerInterval) clearInterval(timerInterval);
