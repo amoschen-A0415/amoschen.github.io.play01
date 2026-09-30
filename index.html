@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>安得烈食物箱行 - 即時志工打包大挑戰</title>
+    <title>安得烈食物銀行 - 即時志工打包大挑戰</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PeerJS & QRCode.js -->
@@ -67,7 +67,7 @@
             50% { transform: translateY(-8px) scale(1.02); }
         }
         .box-active {
-            animation: box-bounce 2s ease-in-out infinite;
+            animation: box-bounce 2.5s ease-in-out infinite;
         }
     </style>
 </head>
@@ -221,7 +221,7 @@
             <h1 id="splash-wave-text" class="text-6xl md:text-8xl font-black text-amber-900 drop-shadow-md">
                 第 1 波物資選擇
             </h1>
-            <p class="text-xl text-amber-700 font-bold mt-4 animate-bounce">⏱️️ 每波倒數 5 秒！準備好手速！</p>
+            <p class="text-xl text-amber-700 font-bold mt-4 animate-bounce">⏱️ 每波倒數 5 秒！準備好手速！</p>
         </div>
 
         <!-- 大螢幕 - 遊戲主畫面 -->
@@ -242,55 +242,45 @@
             </div>
 
             <!-- 右側 (中間)：大螢幕答題區 -->
-            <div class="md:col-span-8 lg:col-span-9 sun-card rounded-3xl p-5 shadow-2xl flex flex-col justify-between items-center overflow-hidden h-full relative">
+            <div class="md:col-span-8 lg:col-span-9 rounded-3xl p-6 flex flex-col justify-between items-center overflow-hidden h-full relative">
                 
                 <!-- 頂部波次與倒數條 -->
                 <div class="w-full flex-shrink-0 z-10">
-                    <div class="w-full bg-amber-100 h-3.5 rounded-full mb-3 overflow-hidden border border-amber-200">
+                    <div class="w-full bg-amber-100/80 h-4 rounded-full mb-4 overflow-hidden border border-amber-300/50 shadow-inner">
                         <div id="timer-bar" class="h-full bg-gradient-to-r from-amber-400 to-orange-500 w-full transition-all duration-100 ease-linear"></div>
                     </div>
 
-                    <div class="flex justify-between items-center mb-2">
+                    <div class="flex justify-between items-center mb-3">
                         <div class="flex items-center gap-3">
-                            <span id="box-type-badge" class="bg-amber-500 text-white font-black text-sm px-3 py-1 rounded-full shadow">
+                            <span id="box-type-badge" class="bg-amber-500 text-white font-black text-base px-4 py-1.5 rounded-full shadow-md">
                                 🥣 膳糧食物箱
                             </span>
-                            <span id="wave-number" class="text-amber-900 font-black text-xl md:text-2xl">
+                            <span id="wave-number" class="text-amber-950 font-black text-2xl md:text-3xl tracking-wide">
                                 第 1 箱 - 第 1 / 4 波
                             </span>
                         </div>
-                        <span id="timer-text" class="text-3xl font-black text-orange-600 animate-pulse">⏱ 5s</span>
+                        <span id="timer-text" class="text-4xl font-black text-orange-600 animate-pulse">⏱ 5s</span>
                     </div>
 
-                    <!-- 箱子任務指示與說明 -->
-                    <div class="bg-amber-50/80 rounded-2xl p-3 border border-amber-200 text-center mb-4 shadow-sm">
-                        <p id="box-instruction" class="text-base md:text-lg font-black text-amber-900">
+                    <!-- 箱子任務指示與說明 (顯著拉開與下方的距離 mb-12) -->
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center mb-12 shadow-md">
+                        <p id="box-instruction" class="text-lg md:text-xl font-black text-amber-900">
                             任務：請從手機點選合格物資放進箱子！
                         </p>
                     </div>
                 </div>
 
-                <!-- 中央區域：食物箱 + 左右兩側答案區域 -->
-                <div class="relative flex-grow flex items-center justify-between w-full my-auto p-4 overflow-hidden gap-4">
-                    
-                    <!-- 左側答案面板 -->
-                    <div id="left-answers-container" class="w-1/4 flex flex-col gap-2.5 items-end justify-center z-20 h-full overflow-y-auto pr-2">
-                        <!-- 動態插入左側答對物資卡片 -->
-                    </div>
-
-                    <!-- 中央：適中比例且具備良好留白的食物箱 -->
-                    <div id="main-big-box" class="max-w-xl md:max-w-2xl w-full aspect-square bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-3xl border-8 border-amber-400 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-6 md:p-8 flex-shrink-0">
-                        <div class="text-7xl md:text-8xl mb-3">📦</div>
-                        <span id="big-box-name" class="text-3xl md:text-5xl font-black text-amber-900 text-center tracking-wider mb-2">
-                            長青食物箱
+                <!-- 中央區域：超大食物箱展示區（無黃色底與外圍答案圖示，保留乾淨舒服佈局） -->
+                <div class="relative flex-grow flex flex-col items-center justify-center w-full my-auto p-4 overflow-hidden">
+                    <div id="main-big-box" class="w-[30rem] md:w-[38rem] h-[30rem] md:h-[38rem] max-h-[55vh] max-w-[90%] bg-gradient-to-br from-amber-100 via-amber-200 to-yellow-300 rounded-[3.5rem] border-[12px] border-amber-500/90 shadow-[0_25px_60px_-15px_rgba(217,119,6,0.3)] flex flex-col items-center justify-center relative box-active z-10 p-8">
+                        <div class="text-[7rem] md:text-[9rem] leading-none mb-3 drop-shadow-md">📦</div>
+                        <span id="big-box-name" class="text-3xl md:text-5xl font-black text-amber-950 text-center tracking-wider mb-2">
+                            膳糧食物箱
                         </span>
+                        <div id="big-box-items-preview" class="flex flex-wrap gap-2.5 justify-center mt-4 max-w-[95%] max-h-[140px] overflow-y-auto">
+                            <!-- 已放入箱子物資動態縮圖 -->
+                        </div>
                     </div>
-
-                    <!-- 右側答案面板 -->
-                    <div id="right-answers-container" class="w-1/4 flex flex-col gap-2.5 items-start justify-center z-20 h-full overflow-y-auto pl-2">
-                        <!-- 動態插入右側答對物資卡片 -->
-                    </div>
-
                 </div>
 
             </div>
@@ -332,7 +322,38 @@
 
     <script>
         /* ==========================================================================
-           1. 物資庫與食物箱資料結構
+           1. 音效控制 (Web Audio API - 無外接依賴)
+           ========================================================================== */
+        let audioCtx = null;
+        function playTickSound(isHigh = false) {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(isHigh ? 880 : 440, audioCtx.currentTime); // 880Hz (A5) 或 440Hz (A4)
+                
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            } catch (e) {
+                console.log('Audio Context Error:', e);
+            }
+        }
+
+        /* ==========================================================================
+           2. 物資庫與 7 種食物箱資料結構
            ========================================================================== */
         
         const FOOD_BOXES = [
@@ -371,6 +392,12 @@
                 name: '6.專案食物箱',
                 allowed: ['醫囑營養品', '尿布', '衛生紙', '專案物資'],
                 icon: '🏥'
+            },
+            {
+                id: 'cny',
+                name: '7.年菜食物箱',
+                allowed: ['養生珍菇雞湯', '花生豬腳', '佛跳牆', '紅燒羊肉爐', '筍乾焢肉', '櫻花蝦米糕'],
+                icon: '🧧'
             }
         ];
 
@@ -384,9 +411,10 @@
             '保久乳': '🥛', '肉鬆': '🥫', '沖泡麥片': '🥣', '肉類罐頭': '🍖', '玉米罐頭': '🌽',
             '麵條': '🍜', '肉類調理包': '🍛', '白米': '🌾', '素肉鬆': '🥫', '素食調理包': '🥗',
             '滴雞精': '🐓', '軟質粥品(少油低鈉)': '🍲', '易咬餅乾': '🍪', '醫囑營養品': '🩺',
-            '尿布': '👶', '專案物資': '🎁',
+            '尿布': '👶', '專案物資': '🎁', 
+            '養生珍菇雞湯': '🍲', '花生豬腳': '🍖', '佛跳牆': '🍲', '紅燒羊肉爐': '🍲', '筍乾焢肉': '🥩', '櫻花蝦米糕': '🍚',
             
-            '辣味豆干': '🌶️', '辣味罐頭': '🌶️', '玻璃罐頭': '🫙', '辣味調理包': '🌶️',
+            '辣味豆干': '🌶️', '辣味罐頭': '🌶️️', '玻璃罐頭': '🫙', '辣味調理包': '🌶️',
             '麻辣鴨血': '🍲', '咖啡': '☕', '洋芋片': '🥔', '泡麵': '🍜', '碳酸飲料': '🥤',
             '生鮮蔬菜': '🥬', '醬瓜罐頭': '🫙'
         };
@@ -400,7 +428,7 @@
         }
 
         /* ==========================================================================
-           2. 全局遊戲狀態與變數
+           3. 全局遊戲狀態與變數
            ========================================================================== */
         let peer = null;
         let hostConn = null;
@@ -411,17 +439,18 @@
         let currentBoxIndex = 0;
         let currentWaveIndex = 0;
         let currentBoxData = null;
-        let remainingAllowedPool = []; // 用於保證當前食物箱每波正確答案不重複的選題池
+        let usedAllowedInCurrentBox = []; // 紀錄當前食物箱已出現過的合格物資，避免重複
 
         let timerInterval = null;
         let aiTimeouts = [];
         let isTransitioning = false;
         let waveTimeLeft = 5;
+        let lastBeepSecond = -1;
 
         let mobileHasAnswered = false;
 
         /* ==========================================================================
-           3. PeerJS 網路連線邏輯
+           4. PeerJS 網路連線邏輯
            ========================================================================== */
         window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -588,7 +617,7 @@
         }
 
         /* ==========================================================================
-           4. 大廳與玩家管理
+           5. 大廳與玩家管理
            ========================================================================== */
         function addPlayer(name, conn, playerId) {
             if (players.some(p => p.id === playerId)) return;
@@ -747,7 +776,7 @@
         }
 
         /* ==========================================================================
-           5. 核心遊戲流程：食物箱與 4 波答題
+           6. 核心遊戲流程：食物箱與 4 波答題
            ========================================================================== */
         
         function startNewBoxFlow(boxIdx) {
@@ -756,9 +785,9 @@
                 return;
             }
 
+            // 遊戲開始與每箱隨機選擇 7 種食物箱之一
             currentBoxData = FOOD_BOXES[Math.floor(Math.random() * FOOD_BOXES.length)];
-            // 初始化當前箱子的不重複合格物資抽題池
-            remainingAllowedPool = shuffleArray([...currentBoxData.allowed]);
+            usedAllowedInCurrentBox = [];
             currentWaveIndex = 0;
 
             players.forEach(p => p.packedItems = []);
@@ -786,19 +815,24 @@
         function loadWaveContent(waveIdx) {
             isTransitioning = false;
             waveTimeLeft = 5;
+            lastBeepSecond = -1;
 
-            // 1. 每波選取 1 個不重複的正確答案
-            if (remainingAllowedPool.length === 0) {
-                remainingAllowedPool = shuffleArray([...currentBoxData.allowed]);
+            // 1. 確保當前食物箱的正確答案不重複出現
+            let availableAllowed = currentBoxData.allowed.filter(item => !usedAllowedInCurrentBox.includes(item));
+            if (availableAllowed.length === 0) {
+                // 若當前箱子允許項目不夠（極端情況），則重置已使用池
+                usedAllowedInCurrentBox = [];
+                availableAllowed = [...currentBoxData.allowed];
             }
-            const chosenCorrect = remainingAllowedPool.pop();
+            const chosenCorrect = availableAllowed[Math.floor(Math.random() * availableAllowed.length)];
+            usedAllowedInCurrentBox.push(chosenCorrect);
 
-            // 2. 準備錯誤答案池 (包含違禁品 + 其他食物箱之物資)
-            const otherAllowedFromOtherBoxes = FOOD_BOXES.flatMap(b => b.allowed).filter(item => !currentBoxData.allowed.includes(item));
-            const candidateWrong = [...FORBIDDEN_ITEMS, ...otherAllowedFromOtherBoxes];
-            const shuffledWrong = shuffleArray(candidateWrong).slice(0, 3);
+            // 2. 準備錯誤答案池 (包含不可放入物資 + 其它食物箱裡的物資)
+            const otherBoxesAllowed = FOOD_BOXES.flatMap(b => b.allowed).filter(item => !currentBoxData.allowed.includes(item));
+            const wrongCandidates = [...FORBIDDEN_ITEMS, ...otherBoxesAllowed];
+            const shuffledWrong = shuffleArray(wrongCandidates).slice(0, 3);
 
-            // 3. 組合當波選項 (1正確 + 3錯誤) 並打亂順序
+            // 3. 組合當波選項 (1個正確答案 + 3個其它/不可放入物資)
             const rawOptions = [
                 { name: chosenCorrect, isCorrect: true, icon: getItemIcon(chosenCorrect) },
                 { name: shuffledWrong[0], isCorrect: false, icon: getItemIcon(shuffledWrong[0]) },
@@ -807,14 +841,13 @@
             ];
             const currentWaveOptions = shuffleArray(rawOptions);
 
-            // 4. 重置與賦予所有參賽者當波選項
+            // 4. 發送給所有玩家
             players.forEach(p => {
                 p.waveAnswered = false;
                 p.choiceIndex = null;
                 p.timeLeft = 0;
                 p.currentWaveOptions = currentWaveOptions;
 
-                // 發送給手機端玩家
                 if (p.conn) {
                     p.conn.send({
                         type: 'WAVE_START',
@@ -830,45 +863,23 @@
             document.getElementById('timer-text').innerText = `⏱️ ${waveTimeLeft}s`;
             document.getElementById('timer-bar').style.width = '100%';
 
-            renderSideAnswers();
+            renderBigBoxPreview();
             renderPlayersDashboard();
 
             startWaveTimer();
             triggerAIBehaviors();
         }
 
-        function renderSideAnswers() {
-            const leftContainer = document.getElementById('left-answers-container');
-            const rightContainer = document.getElementById('right-answers-container');
-            leftContainer.innerHTML = '';
-            rightContainer.innerHTML = '';
-
-            let correctAnswers = [];
-            players.forEach(p => {
-                if (p.packedItems && p.packedItems.length > 0) {
-                    const latestItem = p.packedItems[p.packedItems.length - 1];
-                    correctAnswers.push({
-                        playerName: p.displayName || p.name,
-                        item: latestItem,
-                        icon: getItemIcon(latestItem)
-                    });
-                }
-            });
-
-            correctAnswers.forEach((ans, index) => {
-                const tag = document.createElement('div');
-                tag.className = 'bg-white/95 border-2 border-amber-400 text-amber-900 text-sm md:text-base font-black px-3 py-1.5 rounded-2xl flex items-center gap-2 shadow-md animate-pop max-w-full truncate';
-                tag.innerHTML = `
-                    <span class="text-amber-700 text-xs font-bold truncate max-w-[80px]">${ans.playerName}:</span>
-                    <span class="text-lg">${ans.icon}</span>
-                    <span class="truncate">${ans.item}</span>
-                `;
-
-                if (index % 2 === 0) {
-                    leftContainer.appendChild(tag);
-                } else {
-                    rightContainer.appendChild(tag);
-                }
+        function renderBigBoxPreview() {
+            const container = document.getElementById('big-box-items-preview');
+            container.innerHTML = '';
+            
+            const sampleItems = players.length > 0 ? players[0].packedItems : [];
+            sampleItems.forEach(item => {
+                const tag = document.createElement('span');
+                tag.className = 'bg-white/90 border-2 border-amber-400 text-amber-900 text-sm md:text-base font-black px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-pop';
+                tag.innerHTML = `<span>${getItemIcon(item)}</span> <span>${item}</span>`;
+                container.appendChild(tag);
             });
         }
 
@@ -910,6 +921,12 @@
                 document.getElementById('timer-text').innerText = `⏱️ ${waveTimeLeft}s`;
                 document.getElementById('timer-bar').style.width = `${(remaining / duration) * 100}%`;
 
+                // 倒數滴滴滴音效 (最後 3 秒播放)
+                if (waveTimeLeft <= 3 && waveTimeLeft > 0 && waveTimeLeft !== lastBeepSecond) {
+                    lastBeepSecond = waveTimeLeft;
+                    playTickSound(waveTimeLeft === 1); // 最後 1 秒高音
+                }
+
                 if (remaining <= 0) {
                     clearAllTimers();
                     evaluateWaveAndProceed();
@@ -925,7 +942,7 @@
         }
 
         /* ==========================================================================
-           6. 計分規則與波次推進
+           7. 計分規則與波次推進
            ========================================================================== */
         function evaluateWaveAndProceed() {
             if (isTransitioning) return;
@@ -943,7 +960,7 @@
             });
 
             renderPlayersDashboard();
-            renderSideAnswers();
+            renderBigBoxPreview();
 
             setTimeout(() => {
                 currentWaveIndex++;
@@ -989,7 +1006,7 @@
         }
 
         /* ==========================================================================
-           7. 最終結算與頒獎
+           8. 最終結算與頒獎
            ========================================================================== */
         function showFinalResult() {
             document.getElementById('view-game').classList.add('hidden');
@@ -1063,7 +1080,7 @@
         }
 
         /* ==========================================================================
-           8. 工具函式
+           9. 工具函式
            ========================================================================== */
         function clearAllTimers() {
             if (timerInterval) clearInterval(timerInterval);
