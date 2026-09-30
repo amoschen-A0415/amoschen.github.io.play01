@@ -105,14 +105,14 @@
         <div id="view-lobby" class="w-full h-full sun-card rounded-3xl p-6 relative flex flex-col justify-between overflow-hidden">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center h-full">
                 
-                <!-- 左側：QR Code (完全依照「安得烈大哉問聯網最終版」尺寸480x480無文字) -->
+                <!-- 左側：QR Code (尺寸480x480無文字) -->
                 <div class="md:col-span-6 lg:col-span-7 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-amber-200 pr-0 md:pr-6 pb-2 md:pb-0 text-center h-full overflow-hidden">
                     <div class="p-5 bg-gradient-to-br from-amber-300 via-orange-300 to-yellow-200 rounded-3xl shadow-[0_0_50px_rgba(251,191,36,0.4)] my-auto transition-transform hover:scale-[1.02] duration-300">
                         <div id="qrcode" class="bg-white p-4 rounded-2xl border-2 border-white flex items-center justify-center shadow-inner"></div>
                     </div>
                 </div>
 
-                <!-- 右側：玩家名單 & 設定選項 (更改為 2 個選單：測驗箱數、AI參賽人數) -->
+                <!-- 右側：玩家名單 & 設定選項 -->
                 <div class="md:col-span-6 lg:col-span-5 flex flex-col justify-between h-full overflow-hidden pl-0 md:pl-2">
                     <div class="flex-grow flex flex-col overflow-hidden">
                         <h2 class="text-2xl md:text-3xl font-black text-amber-900 mb-4 flex items-center justify-between flex-shrink-0">
@@ -127,7 +127,7 @@
                         </div>
                     </div>
 
-                    <!-- 遊戲參數設定區塊 (已修正為二項：測驗箱數與AI參賽人數) -->
+                    <!-- 遊戲參數設定區塊 -->
                     <div class="w-full pt-4 flex-shrink-0 bg-amber-50/80 border-2 border-amber-200 rounded-2xl p-4 my-2">
                         <h3 class="text-amber-900 font-black text-base mb-2 flex items-center gap-2">
                             <i class="fa-solid fa-sliders"></i> 挑戰規則設定
@@ -162,7 +162,7 @@
             </div>
         </div>
 
-        <!-- 手機端 - 玩家控制器 (僅顯示：姓名、題數、波次及放進箱子的物資含圖示) -->
+        <!-- 手機端 - 玩家控制器 (含暱稱輸入、選項按鈕與已打包清單) -->
         <div id="view-player-mobile" class="hidden fixed inset-0 z-50 bg-amber-50/95 p-4 flex-col justify-between overflow-hidden">
             
             <div id="mobile-join-form" class="space-y-4 bg-white p-6 rounded-3xl border-4 border-amber-300 shadow-xl my-auto">
@@ -182,37 +182,42 @@
             <div id="mobile-game-panel" class="hidden h-full flex-col justify-between py-2">
                 
                 <!-- 上方：姓名、題數與波次頂部欄 -->
-                <div class="bg-white p-4 rounded-2xl border-2 border-amber-300 shadow-md flex justify-between items-center">
+                <div class="bg-white p-3 rounded-2xl border-2 border-amber-300 shadow-md flex justify-between items-center flex-shrink-0">
                     <div>
                         <span class="text-xs text-amber-700 font-bold block">志工姓名</span>
-                        <span id="mobile-user-name" class="text-lg font-black text-amber-900">--</span>
+                        <span id="mobile-user-name" class="text-base font-black text-amber-900">--</span>
                     </div>
                     <div class="text-center">
                         <span class="text-xs text-amber-700 font-bold block">當前箱數</span>
-                        <span id="mobile-box-num" class="text-lg font-black text-emerald-600">第 1/3 箱</span>
+                        <span id="mobile-box-num" class="text-base font-black text-emerald-600">第 1/3 箱</span>
                     </div>
                     <div class="text-right">
                         <span class="text-xs text-amber-700 font-bold block">當前波次</span>
-                        <span id="mobile-wave-num" class="text-lg font-black text-orange-600">第 1/4 波</span>
+                        <span id="mobile-wave-num" class="text-base font-black text-orange-600">第 1/4 波</span>
                     </div>
                 </div>
 
-                <!-- 中間：已放進食物箱的物資清單 (含圖示與文字) -->
-                <div class="bg-white/90 p-5 rounded-3xl border-3 border-amber-300 shadow-inner flex-grow my-4 flex flex-col justify-start">
-                    <h3 class="text-amber-900 font-black text-base mb-3 flex items-center justify-between border-b pb-2">
+                <!-- 中間：4 個選擇物資按鈕 (答案在手機端呈現) -->
+                <div id="mobile-options-container" class="grid grid-cols-2 gap-3 my-3 flex-shrink-0">
+                    <!-- JS 動態產生選項按鈕 -->
+                </div>
+
+                <!-- 下方：已放進食物箱的物資清單 -->
+                <div class="bg-white/90 p-4 rounded-3xl border-2 border-amber-300 shadow-inner flex-grow flex flex-col justify-start overflow-hidden">
+                    <h3 class="text-amber-900 font-black text-sm mb-2 flex items-center justify-between border-b pb-1 flex-shrink-0">
                         <span>📦 已放入食物箱的物資</span>
-                        <span id="mobile-item-count" class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold">0 / 4 樣</span>
+                        <span id="mobile-item-count" class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">0 / 4 樣</span>
                     </h3>
-                    <div id="mobile-packed-items" class="grid grid-cols-2 gap-3 overflow-y-auto max-h-[50vh]">
-                        <div class="col-span-2 text-center text-amber-700/50 py-10 font-bold border-2 border-dashed border-amber-200 rounded-2xl">
-                            等待您選擇物資放進食物箱...
+                    <div id="mobile-packed-items" class="grid grid-cols-2 gap-2 overflow-y-auto flex-grow">
+                        <div class="col-span-2 text-center text-amber-700/50 py-6 font-bold border-2 border-dashed border-amber-200 rounded-2xl text-xs">
+                            等待您選擇合格物資...
                         </div>
                     </div>
                 </div>
 
-                <!-- 下方：操作響應訊息 -->
-                <div id="mobile-status-text" class="text-center bg-amber-200/80 text-amber-900 font-black py-3 px-4 rounded-2xl text-base border border-amber-300">
-                    ☀️ 準備好了！請查看大螢幕進行選物！
+                <!-- 底部：操作響應訊息 -->
+                <div id="mobile-status-text" class="mt-2 text-center bg-amber-200/80 text-amber-900 font-black py-2 px-3 rounded-xl text-xs border border-amber-300 flex-shrink-0">
+                    ☀️ 準備好了！請點選上方物資進行搶答！
                 </div>
             </div>
         </div>
@@ -226,7 +231,7 @@
             <p class="text-xl text-amber-700 font-bold mt-4 animate-bounce">⏱️ 每波倒數 5 秒！準備好手速！</p>
         </div>
 
-        <!-- 大螢幕 - 遊戲主畫面 (左側排行榜，中間大箱子與周圍物資) -->
+        <!-- 大螢幕 - 遊戲主畫面 (左側排行榜，中間僅顯示大箱子) -->
         <div id="view-game" class="hidden w-full h-full max-h-[92vh] grid grid-cols-1 md:grid-cols-12 gap-4 overflow-hidden">
             
             <!-- 左側：實時分數排行榜 -->
@@ -239,11 +244,11 @@
                     <div id="players-dashboard" class="flex flex-col space-y-2 overflow-hidden flex-grow"></div>
                 </div>
                 <div class="mt-2 pt-2 border-t border-amber-200 text-center flex-shrink-0">
-                    <span id="round-status-hint" class="text-emerald-700 font-black text-sm">✨ 打包進行中，每波搶答領先加分！</span>
+                    <span id="round-status-hint" class="text-emerald-700 font-black text-sm">✨ 請在手機端選擇合格物資！</span>
                 </div>
             </div>
 
-            <!-- 右側 (中間)：大箱子 (佔據視覺核心) 與周圍放置答案圖示 -->
+            <!-- 右側 (中間)：大箱子 (僅顯示食物箱) -->
             <div class="md:col-span-8 lg:col-span-9 sun-card rounded-3xl p-5 shadow-2xl flex flex-col justify-between overflow-hidden h-full relative">
                 
                 <!-- 頂部波次與倒數條 -->
@@ -267,28 +272,23 @@
                     <!-- 箱子任務指示與說明 -->
                     <div class="bg-amber-50/80 rounded-2xl p-3 border border-amber-200 text-center mb-3">
                         <p id="box-instruction" class="text-base md:text-lg font-black text-amber-900">
-                            任務：請從四周選取合格物資放進箱子！（不可放入違禁物）
+                            任務：請從手機點選合格物資放進箱子！（不可放入違禁物）
                         </p>
                     </div>
                 </div>
 
-                <!-- 中央大箱子與四周答案 Option 佈局 -->
+                <!-- 中央大箱子佈局 (大螢幕僅顯示此食物箱) -->
                 <div class="relative flex-grow flex items-center justify-center my-2 p-2 min-h-[320px]">
                     
-                    <!-- 中央超大實體食物箱 (佔據視覺中心) -->
-                    <div id="main-big-box" class="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-3xl border-8 border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-4">
-                        <div class="text-6xl md:text-7xl mb-1">📦</div>
+                    <!-- 中央超大實體食物箱 -->
+                    <div id="main-big-box" class="w-72 h-72 md:w-96 md:h-96 bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-3xl border-8 border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-4">
+                        <div class="text-7xl md:text-8xl mb-2">📦</div>
                         <span id="big-box-name" class="text-2xl md:text-3xl font-black text-amber-900 text-center tracking-wider">
                             長青食物箱
                         </span>
                         <div id="big-box-items-preview" class="flex flex-wrap gap-2 justify-center mt-3 max-w-[90%]">
                             <!-- 已放入箱子物資動態縮圖 -->
                         </div>
-                    </div>
-
-                    <!-- 周圍四周環繞的答案選項圖示 (最少1個正確+其他) -->
-                    <div id="options-around-container" class="absolute inset-0 grid grid-cols-2 md:grid-cols-4 gap-4 items-center justify-items-center p-2 z-20 pointer-events-auto">
-                        <!-- JS 動態填入卡片 -->
                     </div>
 
                 </div>
@@ -332,10 +332,9 @@
 
     <script>
         /* ==========================================================================
-           1. 物資庫與食物箱資料結構 (嚴格依據規格)
+           1. 物資庫與食物箱資料結構
            ========================================================================== */
         
-        // 6 種允許物資食物箱定義
         const FOOD_BOXES = [
             {
                 id: 'baby',
@@ -375,13 +374,11 @@
             }
         ];
 
-        // 絕對禁忌放物資 (11種)
         const FORBIDDEN_ITEMS = [
             '辣味豆干', '辣味罐頭', '玻璃罐頭', '辣味調理包', '麻辣鴨血', 
             '咖啡', '洋芋片', '泡麵', '碳酸飲料', '生鮮蔬菜', '醬瓜罐頭'
         ];
 
-        // 物資名稱對應 Icon 字典 (陽光豐富風格)
         const ITEM_ICONS = {
             '嬰兒奶粉': '🍼', '嬰幼兒尿布': '👶', '嬰幼兒濕紙巾': '🧻', '衛生紙': '🧻',
             '保久乳': '🥛', '肉鬆': '🥫', '沖泡麥片': '🥣', '肉類罐頭': '🍖', '玉米罐頭': '🌽',
@@ -389,7 +386,6 @@
             '滴雞精': '🐓', '軟質粥品(少油低鈉)': '🍲', '易咬餅乾': '🍪', '醫囑營養品': '🩺',
             '尿布': '👶', '專案物資': '🎁',
             
-            // 禁忌物資 Icon
             '辣味豆干': '🌶️', '辣味罐頭': '🌶️', '玻璃罐頭': '🫙', '辣味調理包': '🌶️',
             '麻辣鴨血': '🍲', '咖啡': '☕', '洋芋片': '🥔', '泡麵': '🍜', '碳酸飲料': '🥤',
             '生鮮蔬菜': '🥬', '醬瓜罐頭': '🫙'
@@ -407,12 +403,12 @@
         let players = [];
         let myPlayerId = null;
 
-        let totalBoxCount = 3;       // 選定之測驗箱數 (1, 3, 5)
-        let currentBoxIndex = 0;     // 當前第幾箱 (0-based)
-        let currentWaveIndex = 0;    // 當前波次 (0..3)
-        let currentBoxData = null;   // 當前食物箱定義
-        let currentWaveOptions = []; // 當前波次 4 個選項 [{name, icon, isCorrect}]
-        let boxUsedCorrectItems = [];// 本箱已出現過的正確答案，避免重複
+        let totalBoxCount = 3;
+        let currentBoxIndex = 0;
+        let currentWaveIndex = 0;
+        let currentBoxData = null;
+        let currentWaveOptions = [];
+        let boxUsedCorrectItems = [];
 
         let timerInterval = null;
         let aiTimeouts = [];
@@ -422,6 +418,7 @@
         let audioCtx = null;
         let isBgmPlaying = false;
         let bgmTimerId = null;
+        let mobileHasAnswered = false;
 
         /* ==========================================================================
            3. 音效與 Web Audio 聲響
@@ -449,7 +446,6 @@
             osc.stop(audioCtx.currentTime + duration);
         }
 
-        // 溫柔陽光 BGM 循環
         function playSunBgm() {
             initAudio();
             stopBgm();
@@ -510,7 +506,6 @@
                 const joinUrl = `${window.location.href.split('?')[0]}?host=${id}`;
                 document.getElementById("qrcode").innerHTML = "";
                 
-                // 完全依照「安得烈大哉問聯網最終版」之 QR 尺寸與無文字
                 new QRCode(document.getElementById("qrcode"), {
                     text: joinUrl,
                     width: 480,
@@ -555,11 +550,13 @@
 
                 hostConn.on('data', (data) => {
                     if (data.type === 'GAME_START') {
-                        document.getElementById('mobile-status-text').innerText = '🎮 挑戰開始！請觀看大螢幕選取物資！';
+                        document.getElementById('mobile-status-text').innerText = '🎮 挑戰開始！請選擇下方合格物資！';
                     } else if (data.type === 'WAVE_START') {
+                        mobileHasAnswered = false;
                         document.getElementById('mobile-box-num').innerText = `第 ${data.boxIndex + 1}/${data.totalBoxes} 箱`;
                         document.getElementById('mobile-wave-num').innerText = `第 ${data.waveIndex + 1}/4 波`;
-                        document.getElementById('mobile-status-text').innerText = '⏱️ 請看大螢幕周圍圖示進行選擇！';
+                        document.getElementById('mobile-status-text').innerText = '⏱️ 請點選下方物資進行搶答！';
+                        renderMobileOptions(data.options);
                     } else if (data.type === 'UPDATE_PACKED_ITEMS') {
                         renderMobilePackedItems(data.packedItems);
                     } else if (data.type === 'FINAL_RESULT') {
@@ -583,7 +580,48 @@
             }
         });
 
-        // 參賽者手機端僅顯示：姓名、題數、波次及放進箱子的物資(含圖示)
+        // 手機端渲染物資選項按鈕 (答案在手機端呈現)
+        function renderMobileOptions(options) {
+            const container = document.getElementById('mobile-options-container');
+            container.innerHTML = '';
+
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full py-4 bg-white border-2 border-amber-300 hover:border-amber-500 rounded-2xl shadow-md flex flex-col items-center justify-center transition active:scale-95';
+                btn.innerHTML = `
+                    <span class="text-3xl">${opt.icon}</span>
+                    <span class="font-black text-amber-900 text-sm mt-1">${opt.name}</span>
+                `;
+                btn.onclick = () => selectMobileOption(idx, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectMobileOption(choiceIndex, btnEl) {
+            if (mobileHasAnswered) return;
+            mobileHasAnswered = true;
+
+            // 標示已選擇
+            const allBtns = document.querySelectorAll('#mobile-options-container button');
+            allBtns.forEach(b => {
+                b.disabled = true;
+                b.classList.add('opacity-50');
+            });
+
+            btnEl.classList.remove('opacity-50');
+            btnEl.classList.add('border-emerald-500', 'bg-emerald-50', 'ring-2', 'ring-emerald-400');
+
+            document.getElementById('mobile-status-text').innerText = "✓ 已送出選擇，等待公布結果...";
+
+            if (hostConn && hostConn.open) {
+                hostConn.send({
+                    type: 'SUBMIT_WAVE_CHOICE',
+                    playerId: myPlayerId,
+                    choiceIndex: choiceIndex
+                });
+            }
+        }
+
         function renderMobilePackedItems(packedItems) {
             const container = document.getElementById('mobile-packed-items');
             container.innerHTML = '';
@@ -591,7 +629,7 @@
 
             if (packedItems.length === 0) {
                 container.innerHTML = `
-                    <div class="col-span-2 text-center text-amber-700/50 py-10 font-bold border-2 border-dashed border-amber-200 rounded-2xl">
+                    <div class="col-span-2 text-center text-amber-700/50 py-6 font-bold border-2 border-dashed border-amber-200 rounded-2xl text-xs">
                         等待放進食物箱的物資...
                     </div>
                 `;
@@ -600,9 +638,9 @@
 
             packedItems.forEach(item => {
                 const el = document.createElement('div');
-                el.className = 'flex items-center gap-2 p-3 bg-amber-100/80 rounded-2xl border border-amber-300 font-black text-amber-900 text-sm animate-pop';
+                el.className = 'flex items-center gap-2 p-2 bg-amber-100/80 rounded-xl border border-amber-300 font-black text-amber-900 text-xs animate-pop';
                 el.innerHTML = `
-                    <span class="text-2xl">${getItemIcon(item)}</span>
+                    <span class="text-xl">${getItemIcon(item)}</span>
                     <span class="truncate">${item}</span>
                 `;
                 container.appendChild(el);
@@ -610,7 +648,7 @@
         }
 
         /* ==========================================================================
-           5. 大廳與玩家管理 (加入 AI 邏輯與小羅出現機率)
+           5. 大廳與玩家管理
            ========================================================================== */
         function addPlayer(name, conn, playerId) {
             if (players.some(p => p.id === playerId)) return;
@@ -664,7 +702,6 @@
             totalBoxCount = parseInt(document.getElementById('select-box-count').value, 10);
             const aiCount = parseInt(document.getElementById('select-ai-count').value, 10);
 
-            // 安得烈小羅出現機率為總題數 (總箱數) * 1%
             const andrewProb = totalBoxCount * 0.01;
 
             if (aiCount > 0) {
@@ -705,14 +742,12 @@
            6. 核心遊戲流程：食物箱與 4 波答題
            ========================================================================== */
         
-        // 隨機揀選 6 種食物箱之一
         function startNewBoxFlow(boxIdx) {
             if (boxIdx >= totalBoxCount) {
                 showFinalResult();
                 return;
             }
 
-            // 隨機選擇 1 種食物箱，並重置箱內物資狀態
             currentBoxData = FOOD_BOXES[Math.floor(Math.random() * FOOD_BOXES.length)];
             boxUsedCorrectItems = [];
             currentWaveIndex = 0;
@@ -729,7 +764,6 @@
             clearAllTimers();
             isTransitioning = true;
 
-            // 畫面顯示波次 Splash
             document.getElementById('splash-box-title').innerText = `${currentBoxData.icon} 箱數 ${currentBoxIndex + 1}/${totalBoxCount}：${currentBoxData.name}`;
             document.getElementById('splash-wave-text').innerText = `第 ${waveIdx + 1} 波物資選擇`;
             document.getElementById('view-question-splash').classList.remove('hidden');
@@ -740,34 +774,27 @@
             }, 1000);
         }
 
-        // 產生該波選項 (最少 1 個正確答案，出現過的正確答案不重複)
         function loadWaveContent(waveIdx) {
             isTransitioning = false;
             waveTimeLeft = 5;
 
-            // 篩選出該食物箱尚未使用過的正確答案
             const availableCorrect = currentBoxData.allowed.filter(item => !boxUsedCorrectItems.includes(item));
             
-            // 選取 1 個正確答案
             let chosenCorrect = availableCorrect[Math.floor(Math.random() * availableCorrect.length)];
-            // 如果合格物資取完，則備用取 allowed 的隨機一項
             if (!chosenCorrect) chosenCorrect = currentBoxData.allowed[Math.floor(Math.random() * currentBoxData.allowed.length)];
 
             boxUsedCorrectItems.push(chosenCorrect);
 
-            // 收集其它不可放入物資與其它箱子裡的物資
             const otherAllowedFromOtherBoxes = FOOD_BOXES.flatMap(b => b.allowed).filter(item => !currentBoxData.allowed.includes(item));
             const candidateWrong = [...FORBIDDEN_ITEMS, ...otherAllowedFromOtherBoxes];
 
-            // 隨機取出 3 個錯誤答案
             const shuffledWrong = shuffleArray(candidateWrong).slice(0, 3);
 
-            // 組合成 4 個選項並打亂
             const rawOptions = [
-                { name: chosenCorrect, isCorrect: true },
-                { name: shuffledWrong[0], isCorrect: false },
-                { name: shuffledWrong[1], isCorrect: false },
-                { name: shuffledWrong[2], isCorrect: false }
+                { name: chosenCorrect, isCorrect: true, icon: getItemIcon(chosenCorrect) },
+                { name: shuffledWrong[0], isCorrect: false, icon: getItemIcon(shuffledWrong[0]) },
+                { name: shuffledWrong[1], isCorrect: false, icon: getItemIcon(shuffledWrong[1]) },
+                { name: shuffledWrong[2], isCorrect: false, icon: getItemIcon(shuffledWrong[2]) }
             ];
             currentWaveOptions = shuffleArray(rawOptions);
 
@@ -780,7 +807,8 @@
                         type: 'WAVE_START',
                         boxIndex: currentBoxIndex,
                         totalBoxes: totalBoxCount,
-                        waveIndex: waveIdx
+                        waveIndex: waveIdx,
+                        options: currentWaveOptions.map(o => ({ name: o.name, icon: o.icon }))
                     });
                 }
             });
@@ -790,37 +818,16 @@
             document.getElementById('timer-bar').style.width = '100%';
 
             renderBigBoxPreview();
-            renderOptionsAround(currentWaveOptions);
             renderPlayersDashboard();
 
             startWaveTimer();
             triggerAIBehaviors();
         }
 
-        // 大螢幕中央箱子周圍放滿 4 個選項圖示
-        function renderOptionsAround(options) {
-            const container = document.getElementById('options-around-container');
-            container.innerHTML = '';
-
-            options.forEach((opt, idx) => {
-                const card = document.createElement('div');
-                card.id = `option-card-${idx}`;
-                card.className = 'w-36 h-28 md:w-44 md:h-32 bg-white border-4 border-amber-300 rounded-2xl shadow-xl flex flex-col items-center justify-center p-2 cursor-pointer transform hover:scale-105 active:scale-95 transition pointer-events-auto bg-gradient-to-b from-white to-amber-50';
-                card.innerHTML = `
-                    <span class="text-4xl md:text-5xl mb-1">${getItemIcon(opt.name)}</span>
-                    <span class="text-xs md:text-sm font-black text-amber-900 text-center line-clamp-1">${opt.name}</span>
-                `;
-                card.onclick = () => hostDirectClickOption(idx);
-                container.appendChild(card);
-            });
-        }
-
-        // 大螢幕箱子內部物資預覽
         function renderBigBoxPreview() {
             const container = document.getElementById('big-box-items-preview');
             container.innerHTML = '';
             
-            // 預覽第一位玩家的物資或共同裝箱物資
             const sampleItems = players.length > 0 ? players[0].packedItems : [];
             sampleItems.forEach(item => {
                 const tag = document.createElement('span');
@@ -830,23 +837,8 @@
             });
         }
 
-        function hostDirectClickOption(idx) {
-            // 提供大螢幕直接點擊體驗
-            if (players.length > 0) {
-                const hostP = players[0];
-                if (!hostP.waveAnswered) {
-                    hostP.waveAnswered = true;
-                    hostP.choiceIndex = idx;
-                    hostP.timeLeft = waveTimeLeft;
-                    renderPlayersDashboard();
-                    checkAllWaveAnswered();
-                }
-            }
-        }
-
         function triggerAIBehaviors() {
             players.filter(p => p.isAI).forEach(ai => {
-                // AI 邏輯：小羅 95% 答對，一般 AI 70% 答對
                 const correctIdx = currentWaveOptions.findIndex(o => o.isCorrect);
                 const isCorrect = Math.random() < (ai.isAndrew ? 0.95 : 0.70);
                 
@@ -856,7 +848,7 @@
                     chosenIdx = wrongIndices[Math.floor(Math.random() * wrongIndices.length)];
                 }
 
-                const delay = Math.random() * 3500 + 500; // 0.5s ~ 4s 內回答
+                const delay = Math.random() * 3500 + 500;
                 const tid = setTimeout(() => {
                     if (isTransitioning || ai.waveAnswered) return;
                     ai.waveAnswered = true;
@@ -872,7 +864,7 @@
 
         function startWaveTimer() {
             const startTime = Date.now();
-            const duration = 5000; // 每波 5 秒
+            const duration = 5000;
 
             timerInterval = setInterval(() => {
                 const elapsed = Date.now() - startTime;
@@ -897,37 +889,22 @@
         }
 
         /* ==========================================================================
-           7. 計分規則 (答對1樣+5分，剩1秒+1分) 與波次推進
+           7. 計分規則與波次推進
            ========================================================================== */
         function evaluateWaveAndProceed() {
             if (isTransitioning) return;
             isTransitioning = true;
 
-            // 揭示正確與錯誤選項
-            currentWaveOptions.forEach((opt, idx) => {
-                const card = document.getElementById(`option-card-${idx}`);
-                if (card) {
-                    if (opt.isCorrect) {
-                        card.classList.add('bg-emerald-100', 'border-emerald-500', 'scale-110', 'z-30');
-                    } else {
-                        card.classList.add('opacity-40', 'grayscale', 'scale-95');
-                    }
-                }
-            });
-
-            // 計算分數與紀錄放置物資
             players.forEach(p => {
                 if (p.choiceIndex !== null && p.choiceIndex !== undefined) {
                     const chosenOpt = currentWaveOptions[p.choiceIndex];
                     if (chosenOpt && chosenOpt.isCorrect) {
-                        // 規則：答對 1 樣 +5 分，剩餘秒數每剩 1 秒 +1 分
                         let waveScore = 5 + (p.timeLeft || 0);
                         p.score += waveScore;
                         p.packedItems.push(chosenOpt.name);
                     }
                 }
 
-                // 同步至手機端顯示
                 if (p.conn) {
                     p.conn.send({
                         type: 'UPDATE_PACKED_ITEMS',
@@ -939,7 +916,6 @@
             renderPlayersDashboard();
             renderBigBoxPreview();
 
-            // 1 秒間隔後進入下一波或下一箱
             setTimeout(() => {
                 currentWaveIndex++;
                 if (currentWaveIndex < 4) {
@@ -948,7 +924,7 @@
                     currentBoxIndex++;
                     startNewBoxFlow(currentBoxIndex);
                 }
-            }, 1000); // 每波間隔 1 秒
+            }, 1000);
         }
 
         function renderPlayersDashboard() {
@@ -965,7 +941,7 @@
 
                 if (p.waveAnswered) {
                     borderClass = 'border-emerald-400 bg-emerald-50/90 shadow-md';
-                    statusBadge = '<span class="text-xs text-emerald-700 font-black">✓ 放進箱子</span>';
+                    statusBadge = '<span class="text-xs text-emerald-700 font-black">✓ 已選擇</span>';
                 }
 
                 card.className = `p-2.5 rounded-2xl border-2 ${borderClass} flex items-center justify-between transition-all flex-shrink-0`;
@@ -1049,7 +1025,6 @@
                 top3Container.appendChild(card);
             });
 
-            // 慶祝彩帶效果
             confetti({
                 particleCount: 100,
                 spread: 70,
