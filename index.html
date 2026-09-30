@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>安得烈志工服務體驗 - 陽光歡樂版</title>
+    <title>安得烈志工服務體驗 - 歡樂體驗版</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PeerJS & QRCode.js -->
@@ -44,7 +44,7 @@
             height: auto;
         }
 
-        /* 陽光溫柔卡片浮動效果 */
+        /* 柔和溫柔卡片浮動效果 */
         .sun-card {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(12px);
@@ -92,9 +92,6 @@
                 <span id="bgm-icon">🎵</span>
                 <span id="bgm-text">背景音樂: 關</span>
             </button>
-            <div id="game-stage-badge" class="px-4 py-1.5 rounded-full text-sm md:text-base font-black bg-emerald-100 border border-emerald-300 text-emerald-800">
-                ☀️ 陽光體驗模式
-            </div>
         </div>
     </header>
 
@@ -197,7 +194,7 @@
                     </div>
                 </div>
 
-                <!-- 中間：4 個選擇物資按鈕 (移除下方清單後加大呈現空間) -->
+                <!-- 中間：4 個選擇物資按鈕 -->
                 <div id="mobile-options-container" class="grid grid-cols-2 gap-4 my-auto flex-grow items-center p-2">
                     <!-- JS 動態產生選項按鈕 -->
                 </div>
@@ -233,7 +230,7 @@
             <p class="text-xl text-amber-700 font-bold mt-4 animate-bounce">⏱️ 每波倒數 5 秒！準備好手速！</p>
         </div>
 
-        <!-- 大螢幕 - 遊戲主畫面 (左側排行榜，中間僅顯示大箱子) -->
+        <!-- 大螢幕 - 遊戲主畫面 (左側排行榜，中間包含全物資選項與食物箱) -->
         <div id="view-game" class="hidden w-full h-full max-h-[92vh] grid grid-cols-1 md:grid-cols-12 gap-4 overflow-hidden">
             
             <!-- 左側：實時分數排行榜 -->
@@ -250,11 +247,11 @@
                 </div>
             </div>
 
-            <!-- 右側 (中間)：大箱子 (僅顯示食物箱) -->
+            <!-- 右側 (中間)：大螢幕答題區 (含頂部資訊、題目週圍物資選項、中央食物箱) -->
             <div class="md:col-span-8 lg:col-span-9 sun-card rounded-3xl p-5 shadow-2xl flex flex-col justify-between overflow-hidden h-full relative">
                 
                 <!-- 頂部波次與倒數條 -->
-                <div class="w-full flex-shrink-0">
+                <div class="w-full flex-shrink-0 z-10">
                     <div class="w-full bg-amber-100 h-3.5 rounded-full mb-3 overflow-hidden border border-amber-200">
                         <div id="timer-bar" class="h-full bg-gradient-to-r from-amber-400 to-orange-500 w-full transition-all duration-100 ease-linear"></div>
                     </div>
@@ -272,24 +269,50 @@
                     </div>
 
                     <!-- 箱子任務指示與說明 -->
-                    <div class="bg-amber-50/80 rounded-2xl p-3 border border-amber-200 text-center mb-3">
+                    <div class="bg-amber-50/80 rounded-2xl p-3 border border-amber-200 text-center mb-2 shadow-sm">
                         <p id="box-instruction" class="text-base md:text-lg font-black text-amber-900">
                             任務：請從手機點選合格物資放進箱子！（不可放入違禁物）
                         </p>
                     </div>
                 </div>
 
-                <!-- 中央大箱子佈局 (大螢幕僅顯示此食物箱) -->
-                <div class="relative flex-grow flex items-center justify-center my-2 p-2 min-h-[320px]">
+                <!-- 中央區域：週圍顯示所有 4 個物資答案選項 + 中央食物箱 -->
+                <div class="relative flex-grow grid grid-cols-12 gap-3 items-center my-auto p-2">
                     
-                    <!-- 中央超大實體食物箱 -->
-                    <div id="main-big-box" class="w-72 h-72 md:w-96 md:h-96 bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-3xl border-8 border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-4">
-                        <div class="text-7xl md:text-8xl mb-2">📦</div>
-                        <span id="big-box-name" class="text-2xl md:text-3xl font-black text-amber-900 text-center tracking-wider">
-                            長青食物箱
-                        </span>
-                        <div id="big-box-items-preview" class="flex flex-wrap gap-2 justify-center mt-3 max-w-[90%]">
-                            <!-- 已放入箱子物資動態縮圖 -->
+                    <!-- 週圍答案選項區：左邊 2 個 -->
+                    <div class="col-span-3 flex flex-col gap-4 justify-center z-10">
+                        <div id="display-opt-0" class="bg-white border-4 border-amber-300 rounded-2xl p-3 shadow-lg flex flex-col items-center justify-center text-center transition-all">
+                            <span id="display-icon-0" class="text-4xl mb-1">📦</span>
+                            <span id="display-name-0" class="font-black text-amber-900 text-base md:text-lg">載入中...</span>
+                        </div>
+                        <div id="display-opt-1" class="bg-white border-4 border-amber-300 rounded-2xl p-3 shadow-lg flex flex-col items-center justify-center text-center transition-all">
+                            <span id="display-icon-1" class="text-4xl mb-1">📦</span>
+                            <span id="display-name-1" class="font-black text-amber-900 text-base md:text-lg">載入中...</span>
+                        </div>
+                    </div>
+
+                    <!-- 中央大食物箱 -->
+                    <div class="col-span-6 flex items-center justify-center">
+                        <div id="main-big-box" class="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-3xl border-8 border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-4">
+                            <div class="text-6xl md:text-7xl mb-1">📦</div>
+                            <span id="big-box-name" class="text-xl md:text-2xl font-black text-amber-900 text-center tracking-wider">
+                                長青食物箱
+                            </span>
+                            <div id="big-box-items-preview" class="flex flex-wrap gap-1.5 justify-center mt-2 max-w-[95%]">
+                                <!-- 已放入箱子物資動態縮圖 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 週圍答案選項區：右邊 2 個 -->
+                    <div class="col-span-3 flex flex-col gap-4 justify-center z-10">
+                        <div id="display-opt-2" class="bg-white border-4 border-amber-300 rounded-2xl p-3 shadow-lg flex flex-col items-center justify-center text-center transition-all">
+                            <span id="display-icon-2" class="text-4xl mb-1">📦</span>
+                            <span id="display-name-2" class="font-black text-amber-900 text-base md:text-lg">載入中...</span>
+                        </div>
+                        <div id="display-opt-3" class="bg-white border-4 border-amber-300 rounded-2xl p-3 shadow-lg flex flex-col items-center justify-center text-center transition-all">
+                            <span id="display-icon-3" class="text-4xl mb-1">📦</span>
+                            <span id="display-name-3" class="font-black text-amber-900 text-base md:text-lg">載入中...</span>
                         </div>
                     </div>
 
@@ -561,7 +584,7 @@
                         mobileHasAnswered = false;
                         document.getElementById('mobile-box-num').innerText = `第 ${data.boxIndex + 1}/${data.totalBoxes} 箱`;
                         document.getElementById('mobile-wave-num').innerText = `第 ${data.waveIndex + 1}/4 波`;
-                        document.getElementById('mobile-status-text').innerText = '⏱️ 請點選上方物資進行搶答！';
+                        document.getElementById('mobile-status-text').innerText = '⏱️️ 請點選上方物資進行搶答！';
                         renderMobileOptions(data.options);
                     } else if (data.type === 'FINAL_RESULT') {
                         showMobileFinalResult(data.rank, data.score, data.totalPlayers);
@@ -656,7 +679,7 @@
         }
 
         /* ==========================================================================
-           5. 大廳與玩家管理 (比照大哉問 AI 邏輯)
+           5. 大廳與玩家管理 (比照安得烈大哉問 AI 命名與答題率%規則及手機端邏輯)
            ========================================================================== */
         function addPlayer(name, conn, playerId) {
             if (players.some(p => p.id === playerId)) return;
@@ -729,6 +752,9 @@
                             baseName: '安得烈小羅',
                             fullName: `安得烈小羅(${acc}%)`,
                             type: 'andrew',
+                            minAcc: acc / 100,
+                            maxAcc: acc / 100,
+                            accPercent: acc,
                             accRate: acc / 100
                         };
                         availableTypes.splice(availableTypes.indexOf('andrew'), 1);
@@ -745,6 +771,9 @@
                                 baseName: '🤖 特工阿湯哥',
                                 fullName: `🤖 特工阿湯哥(${acc}%)`,
                                 type: 'tom',
+                                minAcc: acc / 100,
+                                maxAcc: acc / 100,
+                                accPercent: acc,
                                 accRate: acc / 100
                             };
                         } else if (chosenType === 'mario') {
@@ -753,6 +782,9 @@
                                 baseName: '🍄 瑪莉歐',
                                 fullName: `🍄 瑪莉歐(${acc}%)`,
                                 type: 'mario',
+                                minAcc: acc / 100,
+                                maxAcc: acc / 100,
+                                accPercent: acc,
                                 accRate: acc / 100
                             };
                         } else {
@@ -766,6 +798,9 @@
                                 baseName: pickedName,
                                 fullName: `${pickedName}(${acc}%)`,
                                 type: 'random',
+                                minAcc: acc / 100,
+                                maxAcc: acc / 100,
+                                accPercent: acc,
                                 accRate: acc / 100
                             };
                         }
@@ -774,7 +809,7 @@
                     players.push({
                         id: 'ai_' + Date.now() + '_' + i,
                         name: aiSpec.fullName,
-                        displayName: aiSpec.baseName,
+                        displayName: aiSpec.fullName,
                         conn: null,
                         isAI: true,
                         aiType: aiSpec.type,
@@ -861,6 +896,16 @@
                 { name: shuffledWrong[2], isCorrect: false, icon: getItemIcon(shuffledWrong[2]) }
             ];
             currentWaveOptions = shuffleArray(rawOptions);
+
+            // 更新大螢幕週圍顯示的 4 個答案物資
+            currentWaveOptions.forEach((opt, idx) => {
+                const iconEl = document.getElementById(`display-icon-${idx}`);
+                const nameEl = document.getElementById(`display-name-${idx}`);
+                if (iconEl && nameEl) {
+                    iconEl.innerText = opt.icon;
+                    nameEl.innerText = opt.name;
+                }
+            });
 
             players.forEach(p => {
                 p.waveAnswered = false;
