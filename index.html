@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>安得烈志工服務體驗 - 歡樂體驗版</title>
+    <title>安得烈食物箱行 - 即時志工打包大挑戰</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PeerJS & QRCode.js -->
@@ -102,7 +102,7 @@
         <div id="view-lobby" class="w-full h-full sun-card rounded-3xl p-6 relative flex flex-col justify-between overflow-hidden">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center h-full">
                 
-                <!-- 左側：QR Code (尺寸480x480無文字) -->
+                <!-- 左側：QR Code -->
                 <div class="md:col-span-6 lg:col-span-7 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-amber-200 pr-0 md:pr-6 pb-2 md:pb-0 text-center h-full overflow-hidden">
                     <div class="p-5 bg-gradient-to-br from-amber-300 via-orange-300 to-yellow-200 rounded-3xl shadow-[0_0_50px_rgba(251,191,36,0.4)] my-auto transition-transform hover:scale-[1.02] duration-300">
                         <div id="qrcode" class="bg-white p-4 rounded-2xl border-2 border-white flex items-center justify-center shadow-inner"></div>
@@ -119,7 +119,7 @@
 
                         <div id="player-list-lobby" class="grid grid-cols-2 lg:grid-cols-3 gap-2.5 overflow-hidden flex-grow content-start">
                             <div class="col-span-full text-amber-700/60 text-center py-12 font-bold border-2 border-dashed border-amber-200 rounded-2xl text-lg">
-                                ☀️ 請掃描左側 QR Code 加入志工隊伍...
+                                ☀️️ 請掃描左側 QR Code 加入志工隊伍...
                             </div>
                         </div>
                     </div>
@@ -205,7 +205,7 @@
                 </div>
             </div>
 
-            <!-- 手機端 - 最終結算（參照安得烈大哉問聯網最終版） -->
+            <!-- 手機端 - 最終結算 -->
             <div id="mobile-final-result" class="hidden my-auto flex-col items-center justify-center space-y-4 text-center bg-white border-4 border-amber-400 p-8 rounded-3xl shadow-2xl w-full">
                 <span class="text-6xl" id="mobile-result-icon">🏆</span>
                 <h2 class="text-2xl font-black text-amber-900">遊戲最終結算</h2>
@@ -230,7 +230,7 @@
             <p class="text-xl text-amber-700 font-bold mt-4 animate-bounce">⏱️ 每波倒數 5 秒！準備好手速！</p>
         </div>
 
-        <!-- 大螢幕 - 遊戲主畫面 (左側排行榜，中間包含全物資選項與食物箱) -->
+        <!-- 大螢幕 - 遊戲主畫面 -->
         <div id="view-game" class="hidden w-full h-full max-h-[92vh] grid grid-cols-1 md:grid-cols-12 gap-4 overflow-hidden">
             
             <!-- 左側：實時分數排行榜 -->
@@ -247,7 +247,7 @@
                 </div>
             </div>
 
-            <!-- 右側 (中間)：大螢幕答題區 (含頂部資訊、題目週圍物資選項、中央食物箱) -->
+            <!-- 右側 (中間)：大螢幕答題區 -->
             <div class="md:col-span-8 lg:col-span-9 sun-card rounded-3xl p-5 shadow-2xl flex flex-col justify-between overflow-hidden h-full relative">
                 
                 <!-- 頂部波次與倒數條 -->
@@ -271,51 +271,22 @@
                     <!-- 箱子任務指示與說明 -->
                     <div class="bg-amber-50/80 rounded-2xl p-3 border border-amber-200 text-center mb-2 shadow-sm">
                         <p id="box-instruction" class="text-base md:text-lg font-black text-amber-900">
-                            任務：請從手機點選合格物資放進箱子！（不可放入違禁物）
+                            任務：請從手機點選合格物資放進箱子！（每位參賽者題目皆獨立隨機）
                         </p>
                     </div>
                 </div>
 
-                <!-- 中央區域：週圍顯示所有 4 個物資答案選項 + 中央食物箱 -->
-                <div class="relative flex-grow grid grid-cols-12 gap-3 items-center my-auto p-2">
-                    
-                    <!-- 週圍答案選項區：左邊 2 個 -->
-                    <div class="col-span-3 flex flex-col gap-4 justify-center z-10">
-                        <div id="display-opt-0" class="bg-white border-4 border-amber-300 rounded-2xl p-3 shadow-lg flex flex-col items-center justify-center text-center transition-all">
-                            <span id="display-icon-0" class="text-4xl mb-1">📦</span>
-                            <span id="display-name-0" class="font-black text-amber-900 text-base md:text-lg">載入中...</span>
-                        </div>
-                        <div id="display-opt-1" class="bg-white border-4 border-amber-300 rounded-2xl p-3 shadow-lg flex flex-col items-center justify-center text-center transition-all">
-                            <span id="display-icon-1" class="text-4xl mb-1">📦</span>
-                            <span id="display-name-1" class="font-black text-amber-900 text-base md:text-lg">載入中...</span>
+                <!-- 中央區域：中央食物箱展示區 -->
+                <div class="relative flex-grow flex items-center justify-center my-auto p-2">
+                    <div id="main-big-box" class="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-3xl border-8 border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-4">
+                        <div class="text-6xl md:text-7xl mb-1">📦</div>
+                        <span id="big-box-name" class="text-xl md:text-2xl font-black text-amber-900 text-center tracking-wider">
+                            長青食物箱
+                        </span>
+                        <div id="big-box-items-preview" class="flex flex-wrap gap-1.5 justify-center mt-2 max-w-[95%]">
+                            <!-- 已放入箱子物資動態縮圖 -->
                         </div>
                     </div>
-
-                    <!-- 中央大食物箱 -->
-                    <div class="col-span-6 flex items-center justify-center">
-                        <div id="main-big-box" class="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-3xl border-8 border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-4">
-                            <div class="text-6xl md:text-7xl mb-1">📦</div>
-                            <span id="big-box-name" class="text-xl md:text-2xl font-black text-amber-900 text-center tracking-wider">
-                                長青食物箱
-                            </span>
-                            <div id="big-box-items-preview" class="flex flex-wrap gap-1.5 justify-center mt-2 max-w-[95%]">
-                                <!-- 已放入箱子物資動態縮圖 -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 週圍答案選項區：右邊 2 個 -->
-                    <div class="col-span-3 flex flex-col gap-4 justify-center z-10">
-                        <div id="display-opt-2" class="bg-white border-4 border-amber-300 rounded-2xl p-3 shadow-lg flex flex-col items-center justify-center text-center transition-all">
-                            <span id="display-icon-2" class="text-4xl mb-1">📦</span>
-                            <span id="display-name-2" class="font-black text-amber-900 text-base md:text-lg">載入中...</span>
-                        </div>
-                        <div id="display-opt-3" class="bg-white border-4 border-amber-300 rounded-2xl p-3 shadow-lg flex flex-col items-center justify-center text-center transition-all">
-                            <span id="display-icon-3" class="text-4xl mb-1">📦</span>
-                            <span id="display-name-3" class="font-black text-amber-900 text-base md:text-lg">載入中...</span>
-                        </div>
-                    </div>
-
                 </div>
 
             </div>
@@ -436,7 +407,6 @@
         let currentBoxIndex = 0;
         let currentWaveIndex = 0;
         let currentBoxData = null;
-        let currentWaveOptions = [];
         let boxUsedCorrectItems = [];
 
         let timerInterval = null;
@@ -584,7 +554,7 @@
                         mobileHasAnswered = false;
                         document.getElementById('mobile-box-num').innerText = `第 ${data.boxIndex + 1}/${data.totalBoxes} 箱`;
                         document.getElementById('mobile-wave-num').innerText = `第 ${data.waveIndex + 1}/4 波`;
-                        document.getElementById('mobile-status-text').innerText = '⏱️️ 請點選上方物資進行搶答！';
+                        document.getElementById('mobile-status-text').innerText = '⏱ 請點選上方物資進行搶答！';
                         renderMobileOptions(data.options);
                     } else if (data.type === 'FINAL_RESULT') {
                         showMobileFinalResult(data.rank, data.score, data.totalPlayers);
@@ -593,7 +563,6 @@
             });
         }
 
-        /* 參照安得烈大哉問聯網最終版：手機端最終結算顯示 */
         function showMobileFinalResult(rank, score, totalPlayers) {
             document.getElementById('mobile-game-panel').classList.add('hidden');
 
@@ -657,7 +626,6 @@
             if (mobileHasAnswered) return;
             mobileHasAnswered = true;
 
-            // 標示已選擇
             const allBtns = document.querySelectorAll('#mobile-options-container button');
             allBtns.forEach(b => {
                 b.disabled = true;
@@ -679,7 +647,7 @@
         }
 
         /* ==========================================================================
-           5. 大廳與玩家管理 (比照安得烈大哉問 AI 命名與答題率%規則及手機端邏輯)
+           5. 大廳與玩家管理
            ========================================================================== */
         function addPlayer(name, conn, playerId) {
             if (players.some(p => p.id === playerId)) return;
@@ -695,7 +663,8 @@
                 waveAnswered: false,
                 choiceIndex: null,
                 timeLeft: 0,
-                packedItems: []
+                packedItems: [],
+                currentWaveOptions: []
             };
             players.push(p);
             renderLobbyPlayers();
@@ -735,7 +704,6 @@
             totalBoxCount = parseInt(document.getElementById('select-box-count').value, 10);
             const aiToAddCount = parseInt(document.getElementById('select-ai-count').value, 10);
 
-            // 安得烈小羅出現機率為 總波次(總箱數*4波) * 1%
             const totalWaves = totalBoxCount * 4;
             const andrewProbability = totalWaves * 0.01;
 
@@ -818,7 +786,8 @@
                         waveAnswered: false,
                         choiceIndex: null,
                         timeLeft: 0,
-                        packedItems: []
+                        packedItems: [],
+                        currentWaveOptions: []
                     });
                 }
             }
@@ -873,51 +842,43 @@
             }, 1000);
         }
 
+        // 修改點：獨立為每個參賽者生成隨機題目與選項，防範彼此參照
         function loadWaveContent(waveIdx) {
             isTransitioning = false;
             waveTimeLeft = 5;
 
-            const availableCorrect = currentBoxData.allowed.filter(item => !boxUsedCorrectItems.includes(item));
-            
-            let chosenCorrect = availableCorrect[Math.floor(Math.random() * availableCorrect.length)];
-            if (!chosenCorrect) chosenCorrect = currentBoxData.allowed[Math.floor(Math.random() * currentBoxData.allowed.length)];
-
-            boxUsedCorrectItems.push(chosenCorrect);
-
+            // 準備候選不合格物資池 (違禁品 + 其他食物箱之物資)
             const otherAllowedFromOtherBoxes = FOOD_BOXES.flatMap(b => b.allowed).filter(item => !currentBoxData.allowed.includes(item));
             const candidateWrong = [...FORBIDDEN_ITEMS, ...otherAllowedFromOtherBoxes];
-
-            const shuffledWrong = shuffleArray(candidateWrong).slice(0, 3);
-
-            const rawOptions = [
-                { name: chosenCorrect, isCorrect: true, icon: getItemIcon(chosenCorrect) },
-                { name: shuffledWrong[0], isCorrect: false, icon: getItemIcon(shuffledWrong[0]) },
-                { name: shuffledWrong[1], isCorrect: false, icon: getItemIcon(shuffledWrong[1]) },
-                { name: shuffledWrong[2], isCorrect: false, icon: getItemIcon(shuffledWrong[2]) }
-            ];
-            currentWaveOptions = shuffleArray(rawOptions);
-
-            // 更新大螢幕週圍顯示的 4 個答案物資
-            currentWaveOptions.forEach((opt, idx) => {
-                const iconEl = document.getElementById(`display-icon-${idx}`);
-                const nameEl = document.getElementById(`display-name-${idx}`);
-                if (iconEl && nameEl) {
-                    iconEl.innerText = opt.icon;
-                    nameEl.innerText = opt.name;
-                }
-            });
 
             players.forEach(p => {
                 p.waveAnswered = false;
                 p.choiceIndex = null;
                 p.timeLeft = 0;
+
+                // 為每個參賽者個別隨機抽取 1 個合格物資與 3 個不合格物資
+                const availableCorrect = currentBoxData.allowed;
+                const chosenCorrect = availableCorrect[Math.floor(Math.random() * availableCorrect.length)];
+                const shuffledWrong = shuffleArray(candidateWrong).slice(0, 3);
+
+                const rawOptions = [
+                    { name: chosenCorrect, isCorrect: true, icon: getItemIcon(chosenCorrect) },
+                    { name: shuffledWrong[0], isCorrect: false, icon: getItemIcon(shuffledWrong[0]) },
+                    { name: shuffledWrong[1], isCorrect: false, icon: getItemIcon(shuffledWrong[1]) },
+                    { name: shuffledWrong[2], isCorrect: false, icon: getItemIcon(shuffledWrong[2]) }
+                ];
+                
+                // 為該玩家打亂 4 個選項順序並儲存
+                p.currentWaveOptions = shuffleArray(rawOptions);
+
+                // 發送給手機端玩家個別專屬選項
                 if (p.conn) {
                     p.conn.send({
                         type: 'WAVE_START',
                         boxIndex: currentBoxIndex,
                         totalBoxes: totalBoxCount,
                         waveIndex: waveIdx,
-                        options: currentWaveOptions.map(o => ({ name: o.name, icon: o.icon }))
+                        options: p.currentWaveOptions.map(o => ({ name: o.name, icon: o.icon }))
                     });
                 }
             });
@@ -948,7 +909,8 @@
 
         function triggerAIBehaviors() {
             players.filter(p => p.isAI).forEach(ai => {
-                const correctIdx = currentWaveOptions.findIndex(o => o.isCorrect);
+                // AI 根據自身專屬題目陣列作答
+                const correctIdx = ai.currentWaveOptions.findIndex(o => o.isCorrect);
                 const accRate = ai.aiSpec ? ai.aiSpec.accRate : 0.75;
                 const isCorrect = Math.random() < accRate;
                 
@@ -1007,7 +969,8 @@
 
             players.forEach(p => {
                 if (p.choiceIndex !== null && p.choiceIndex !== undefined) {
-                    const chosenOpt = currentWaveOptions[p.choiceIndex];
+                    // 根據參賽者個別對應的題目選項進行驗證與評分
+                    const chosenOpt = p.currentWaveOptions[p.choiceIndex];
                     if (chosenOpt && chosenOpt.isCorrect) {
                         let waveScore = 5 + (p.timeLeft || 0);
                         p.score += waveScore;
