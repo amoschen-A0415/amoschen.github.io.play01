@@ -248,7 +248,7 @@
             </div>
 
             <!-- 右側 (中間)：大螢幕答題區 -->
-            <div class="md:col-span-8 lg:col-span-9 sun-card rounded-3xl p-5 shadow-2xl flex flex-col justify-between overflow-hidden h-full relative">
+            <div class="md:col-span-8 lg:col-span-9 sun-card rounded-3xl p-5 shadow-2xl flex flex-col justify-between items-center overflow-hidden h-full relative">
                 
                 <!-- 頂部波次與倒數條 -->
                 <div class="w-full flex-shrink-0 z-10">
@@ -265,25 +265,25 @@
                                 第 1 箱 - 第 1 / 4 波
                             </span>
                         </div>
-                        <span id="timer-text" class="text-3xl font-black text-orange-600 animate-pulse">⏱️ 5s</span>
+                        <span id="timer-text" class="text-3xl font-black text-orange-600 animate-pulse">⏱️️ 5s</span>
                     </div>
 
                     <!-- 箱子任務指示與說明 -->
                     <div class="bg-amber-50/80 rounded-2xl p-3 border border-amber-200 text-center mb-2 shadow-sm">
                         <p id="box-instruction" class="text-base md:text-lg font-black text-amber-900">
-                            任務：請從手機點選合格物資放進箱子！（每位參賽者題目皆獨立隨機）
+                            任務：請從手機點選合格物資放進箱子！
                         </p>
                     </div>
                 </div>
 
-                <!-- 中央區域：中央食物箱展示區 -->
-                <div class="relative flex-grow flex items-center justify-center my-auto p-2">
-                    <div id="main-big-box" class="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-3xl border-8 border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-4">
-                        <div class="text-6xl md:text-7xl mb-1">📦</div>
-                        <span id="big-box-name" class="text-xl md:text-2xl font-black text-amber-900 text-center tracking-wider">
+                <!-- 中央區域：中央食物箱展示區（圖示及文字放大2倍，與任務指示等區域共同佔約一半螢幕） -->
+                <div class="relative flex-grow flex flex-col items-center justify-center w-full my-auto p-2 overflow-hidden">
+                    <div id="main-big-box" class="w-[32rem] h-[32rem] md:w-[40rem] md:h-[40rem] max-h-[50vh] w-full bg-gradient-to-br from-amber-200 via-amber-300 to-yellow-400 rounded-[3rem] border-[12px] border-amber-500 shadow-2xl flex flex-col items-center justify-center relative box-active z-10 p-6">
+                        <div class="text-8xl md:text-9xl mb-3">📦</div>
+                        <span id="big-box-name" class="text-3xl md:text-5xl font-black text-amber-900 text-center tracking-wider">
                             長青食物箱
                         </span>
-                        <div id="big-box-items-preview" class="flex flex-wrap gap-1.5 justify-center mt-2 max-w-[95%]">
+                        <div id="big-box-items-preview" class="flex flex-wrap gap-2 justify-center mt-4 max-w-[95%]">
                             <!-- 已放入箱子物資動態縮圖 -->
                         </div>
                     </div>
@@ -407,7 +407,7 @@
         let currentBoxIndex = 0;
         let currentWaveIndex = 0;
         let currentBoxData = null;
-        let boxUsedCorrectItems = [];
+        let remainingAllowedPool = []; // 用於保證當前食物箱每波正確答案不重複的選題池
 
         let timerInterval = null;
         let aiTimeouts = [];
@@ -447,12 +447,10 @@
 
         // 大黃蜂的飛行經典半音階快速旋律
         const BUMBLEBEE_MOTIF = [
-            // 第一句半音階快速下降與迴旋
             587.33, 554.37, 523.25, 493.88, 523.25, 554.37, 587.33, 554.37,
             523.25, 493.88, 466.16, 440.00, 466.16, 493.88, 523.25, 493.88,
             466.16, 440.00, 415.30, 392.00, 415.30, 440.00, 466.16, 440.00,
             415.30, 392.00, 369.99, 349.23, 369.99, 392.00, 415.30, 440.00,
-            // 第二句急促迴轉向上
             440.00, 466.16, 493.88, 523.25, 554.37, 587.33, 622.25, 659.25,
             622.25, 587.33, 554.37, 523.25, 493.88, 466.16, 440.00, 415.30
         ];
@@ -465,7 +463,6 @@
 
             function loop() {
                 if (!isBgmPlaying) return;
-                // 以 80ms 高速節奏播放半音階音符，營造《大黃蜂的飛行》急促嗡嗡聲的效果
                 playSingleNote(BUMBLEBEE_MOTIF[idx], 0.1, 'sawtooth', 0.04);
                 idx = (idx + 1) % BUMBLEBEE_MOTIF.length;
                 bgmTimerId = setTimeout(loop, 80);
@@ -709,7 +706,6 @@
 
         document.getElementById('btn-start-game').addEventListener('click', () => {
             initAudio();
-            // 開始遊戲時自動播放大黃蜂背景音樂
             if (!isBgmPlaying) {
                 playSunBgm();
                 document.getElementById('bgm-text').innerText = "背景音樂: 開";
@@ -834,7 +830,8 @@
             }
 
             currentBoxData = FOOD_BOXES[Math.floor(Math.random() * FOOD_BOXES.length)];
-            boxUsedCorrectItems = [];
+            // 初始化當前箱子的不重複合格物資抽題池
+            remainingAllowedPool = shuffleArray([...currentBoxData.allowed]);
             currentWaveIndex = 0;
 
             players.forEach(p => p.packedItems = []);
@@ -863,31 +860,34 @@
             isTransitioning = false;
             waveTimeLeft = 5;
 
-            // 準備候選不合格物資池 (違禁品 + 其他食物箱之物資)
+            // 1. 每波選取 1 個不重複的正確答案
+            if (remainingAllowedPool.length === 0) {
+                remainingAllowedPool = shuffleArray([...currentBoxData.allowed]);
+            }
+            const chosenCorrect = remainingAllowedPool.pop();
+
+            // 2. 準備錯誤答案池 (包含違禁品 + 其他食物箱之物資)
             const otherAllowedFromOtherBoxes = FOOD_BOXES.flatMap(b => b.allowed).filter(item => !currentBoxData.allowed.includes(item));
             const candidateWrong = [...FORBIDDEN_ITEMS, ...otherAllowedFromOtherBoxes];
+            const shuffledWrong = shuffleArray(candidateWrong).slice(0, 3);
 
+            // 3. 組合當波選項 (1正確 + 3錯誤) 並打亂順序
+            const rawOptions = [
+                { name: chosenCorrect, isCorrect: true, icon: getItemIcon(chosenCorrect) },
+                { name: shuffledWrong[0], isCorrect: false, icon: getItemIcon(shuffledWrong[0]) },
+                { name: shuffledWrong[1], isCorrect: false, icon: getItemIcon(shuffledWrong[1]) },
+                { name: shuffledWrong[2], isCorrect: false, icon: getItemIcon(shuffledWrong[2]) }
+            ];
+            const currentWaveOptions = shuffleArray(rawOptions);
+
+            // 4. 重置與賦予所有參賽者當波選項
             players.forEach(p => {
                 p.waveAnswered = false;
                 p.choiceIndex = null;
                 p.timeLeft = 0;
+                p.currentWaveOptions = currentWaveOptions;
 
-                // 為每個參賽者個別隨機抽取 1 個合格物資與 3 個不合格物資
-                const availableCorrect = currentBoxData.allowed;
-                const chosenCorrect = availableCorrect[Math.floor(Math.random() * availableCorrect.length)];
-                const shuffledWrong = shuffleArray(candidateWrong).slice(0, 3);
-
-                const rawOptions = [
-                    { name: chosenCorrect, isCorrect: true, icon: getItemIcon(chosenCorrect) },
-                    { name: shuffledWrong[0], isCorrect: false, icon: getItemIcon(shuffledWrong[0]) },
-                    { name: shuffledWrong[1], isCorrect: false, icon: getItemIcon(shuffledWrong[1]) },
-                    { name: shuffledWrong[2], isCorrect: false, icon: getItemIcon(shuffledWrong[2]) }
-                ];
-                
-                // 為該玩家打亂 4 個選項順序並儲存
-                p.currentWaveOptions = shuffleArray(rawOptions);
-
-                // 發送給手機端玩家個別專屬選項
+                // 發送給手機端玩家
                 if (p.conn) {
                     p.conn.send({
                         type: 'WAVE_START',
