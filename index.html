@@ -255,7 +255,7 @@
             <!-- 右側 (中間)：大螢幕答題區 -->
             <div class="md:col-span-8 lg:col-span-9 rounded-3xl p-6 flex flex-col justify-start items-center overflow-hidden h-full relative">
                 
-                <!-- 頂部波次與倒數條（外距調小，讓內容向上移動） -->
+                <!-- 頂部波次與倒數條 -->
                 <div class="w-full flex-shrink-0 z-10 mb-3">
                     <div class="w-full bg-amber-100/80 h-4 rounded-full mb-3 overflow-hidden border border-amber-300/50 shadow-inner">
                         <div id="timer-bar" class="h-full bg-gradient-to-r from-amber-400 to-orange-500 w-full transition-all duration-100 ease-linear"></div>
@@ -274,20 +274,13 @@
                     </div>
                 </div>
 
-                <!-- 中央區域：食物箱與題目任務指示區塊（食物箱向上移動，題目向下移，並保持中間距離） -->
-                <div class="relative flex-grow flex flex-col items-center justify-start w-full mt-2 overflow-hidden">
+                <!-- 中央區域：食物箱與題目任務指示區塊 -->
+                <div class="relative flex-grow flex flex-col items-center justify-center w-full my-auto overflow-hidden">
                     
-                    <!-- 題目：箱子任務指示與說明（向下移動，置於食物箱上方並保留間距） -->
-                    <div class="w-full bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center shadow-md overflow-hidden mb-8 z-20 flex-shrink-0">
-                        <p id="box-instruction" class="text-lg md:text-xl font-black text-amber-900 whitespace-nowrap overflow-hidden text-ellipsis">
-                            任務：請從手機點選合格物資放進箱子！
-                        </p>
-                    </div>
-
-                    <!-- 中央圖案：食物箱展示區（向上移動） -->
-                    <div class="relative flex items-center justify-center max-w-full my-auto">
+                    <!-- 上方：中央圖案 (食物箱展示區) -->
+                    <div class="relative flex items-center justify-center max-w-full">
                         
-                        <!-- 食物箱 (整體尺寸與字體縮減為60%，p-4 邊框與內距縮減 20% 改為 p-1) -->
+                        <!-- 食物箱 -->
                         <div id="main-big-box" class="w-[21.6rem] md:w-[28.8rem] max-h-[36vh] max-w-[90vw] flex flex-col items-center justify-center relative box-active z-10 p-1">
                             <div class="text-[9rem] md:text-[11.4rem] leading-none mb-2 drop-shadow-2xl">📦</div>
                             
@@ -306,11 +299,19 @@
                             </div>
                         </div>
 
-                        <!-- 右側：僅顯示「答對+1」跳躍效果顯示區（防止超出螢幕顯示，定位改為右側緊貼且不越界） -->
+                        <!-- 右側：「答對+1」跳躍效果顯示區 -->
                         <div id="correct-badge-container" class="absolute right-0 md:right-2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none z-30 max-w-xs">
                             <!-- JS 動態插入跳躍動畫的「答對+1」 -->
                         </div>
                     </div>
+
+                    <!-- 下方：題目任務指示與說明 (位置移動至食物箱下方，保留 mt-8 間距避免重疊) -->
+                    <div class="w-full max-w-3xl bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-amber-200 text-center shadow-md overflow-hidden mt-8 z-20 flex-shrink-0">
+                        <p id="box-instruction" class="text-lg md:text-xl font-black text-amber-900 whitespace-nowrap overflow-hidden text-ellipsis">
+                            任務：請從手機點選合格物資放進箱子！
+                        </p>
+                    </div>
+
                 </div>
 
             </div>
@@ -516,7 +517,7 @@
             '尿布': '👶', '專案物資': '🎁', 
             '養生珍菇雞湯': '🍲', '花生豬腳': '🍖', '佛跳牆': '🍲', '紅燒羊肉爐': '🍲', '筍乾焢肉': '🥩', '櫻花蝦米糕': '🍚',
             
-            '辣味豆干': '🌶️', '辣味罐頭': '🌶', '玻璃罐頭': '🫙', '辣味調理包': '🌶️',
+            '辣味豆干': '🌶️️', '辣味罐頭': '🌶', '玻璃罐頭': '🫙', '辣味調理包': '🌶️',
             '麻辣鴨血': '🍲', '咖啡': '☕', '洋芋片': '🥔', '泡麵': '🍜', '碳酸飲料': '🥤',
             '生鮮蔬菜': '🥬', '醬瓜罐頭': '🫙'
         };
