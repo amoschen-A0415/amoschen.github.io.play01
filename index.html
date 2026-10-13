@@ -551,7 +551,6 @@
             loop();
         }
 
-        // 還原並完整補全最終獲勝音樂（Mario Victory Fanfare）
         function playMarioVictoryFanfare() {
             initAudio();
             stopBgm();
@@ -926,20 +925,33 @@
             const aiToAddCount = parseInt(document.getElementById('select-ai-count').value, 10);
             gameMode = document.getElementById('select-game-mode').value;
 
+            // 4 位 AI 內定角色資料與對應強度區間 (25% 機率不重複)
+            const aiProfilesPool = shuffleArray([
+                { baseName: '小羅羅', icon: '🤖', min: 90, max: 100 },
+                { baseName: '安得鹿', icon: '🦌', min: 0, max: 60 },
+                { baseName: '大黑怪', icon: '👾', min: 0, max: 90 },
+                { baseName: '寶石公主', icon: '💎', min: 60, max: 90 }
+            ]);
+
             // 補充 AI 參賽者
             if (aiToAddCount > 0) {
-                const aiNames = ['🤖 安得烈小羅', '🤖 特工阿湯哥', '🍄 瑪莉歐'];
                 for (let i = 0; i < aiToAddCount; i++) {
-                    const pickedName = aiNames[i % aiNames.length];
-                    const acc = getRandomInt(50, 90);
+                    const profile = aiProfilesPool.pop(); // 確保 AI 角色不重複
+                    const intensity = getRandomInt(profile.min, profile.max);
+                    const fullName = `${profile.icon} ${profile.baseName}(${intensity}%)`;
+
                     players.push({
                         id: 'ai_' + Date.now() + '_' + i,
-                        name: `${pickedName}(${acc}%)`,
-                        displayName: pickedName,
+                        name: fullName,
+                        displayName: `${profile.icon} ${profile.baseName}`,
                         conn: null,
                         team: null,
                         isAI: true,
-                        aiSpec: { minAcc: acc/100, maxAcc: acc/100 },
+                        aiSpec: { 
+                            intensity: intensity,
+                            minAcc: intensity / 100, 
+                            maxAcc: intensity / 100 
+                        },
                         score: 0,
                         streak: 0,
                         answered: false,
@@ -966,15 +978,23 @@
                 if (redList.length !== whiteList.length) {
                     const targetTeam = redList.length < whiteList.length ? 'red' : 'white';
                     const teamLabel = targetTeam === 'red' ? '紅隊' : '白隊';
-                    const acc = getRandomInt(60, 85);
+                    
+                    // 從剩餘池或預設中選一個補位角色
+                    const fallbackProfile = aiProfilesPool.length > 0 ? aiProfilesPool.pop() : { baseName: '補位助手', icon: '🤖', min: 60, max: 85 };
+                    const intensity = getRandomInt(fallbackProfile.min, fallbackProfile.max);
+
                     players.push({
                         id: 'ai_balance_' + Date.now(),
-                        name: `🤖 補位助手(${teamLabel})`,
-                        displayName: `🤖 補位助手`,
+                        name: `${fallbackProfile.icon} ${fallbackProfile.baseName}(${intensity}%)`,
+                        displayName: `${fallbackProfile.icon} ${fallbackProfile.baseName}`,
                         conn: null,
                         team: targetTeam,
                         isAI: true,
-                        aiSpec: { minAcc: acc/100, maxAcc: acc/100 },
+                        aiSpec: { 
+                            intensity: intensity,
+                            minAcc: intensity / 100, 
+                            maxAcc: intensity / 100 
+                        },
                         score: 0,
                         streak: 0,
                         answered: false,
@@ -1150,7 +1170,7 @@
                 }
 
                 const streakBonus = p.streak >= 1 ? ` 🔥${p.streak}連勝(+${p.streak}分)` : '';
-                const displayName = p.displayName || p.name;
+                const displayName = p.name; // 顯示包含 intensity 強度% 的名稱
 
                 let teamFlag = '';
                 if (gameMode === 'team') {
@@ -1179,10 +1199,15 @@
 
         function triggerAIAnswers(qData) {
             players.filter(p => p.isAI && p.isQualified).forEach(ai => {
-                const spec = ai.aiSpec || { minAcc: 0.7, maxAcc: 0.9 };
-                const isCorrect = Math.random() < spec.minAcc;
+                const intensity = (ai.aiSpec && ai.aiSpec.intensity) ? ai.aiSpec.intensity : 70;
+                
+                // 強度決定準確率與反應速度
+                const isCorrect = (Math.random() * 100) < intensity;
 
-                let delay = getRandomInt(800, 3500);
+                // 強度越高，搶答反應時間越短 (強度100% 約 500ms~1500ms；強度0% 約 3000ms~4500ms)
+                const minDelay = 500 + (100 - intensity) * 20;
+                const maxDelay = 1500 + (100 - intensity) * 30;
+                let delay = getRandomInt(minDelay, maxDelay);
 
                 const timerId = setTimeout(() => {
                     if (isTransitioning || ai.answered) return;
@@ -1380,7 +1405,6 @@
             document.getElementById('view-game').classList.add('hidden');
             document.getElementById('view-result').classList.remove('hidden');
 
-            // 觸發還原後的獲勝音樂
             playMarioVictoryFanfare();
 
             const allSortedPlayers = [...players].sort((a, b) => b.score - a.score);
